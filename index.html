@@ -1,0 +1,1423 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta name="robots" content="noindex, nofollow, noarchive">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Конструктор флота</title>
+<script>window.__ERRS=[];window.onerror=function(m,src,l){window.__ERRS.push(String(m)+(l?" (строка "+l+")":""));return false;};</script>
+<style>
+:root{
+  --bg:#0d1320; --panel:#141c2d; --panel2:#1a2338; --panel3:#202c44;
+  --line:#2a3650; --line2:#39486b;
+  --ink:#e9eef7; --muted:#93a3c0; --dim:#6b7a97;
+  --brass:#d9a441; --sea:#4d79c2;
+  --ok:#54b98a; --warn:#e0b64f; --err:#e06a6a;
+  --chip:#243052;
+  /* снаряды */
+  --am-fug:#e8a33d; --am-ap:#d96a54; --am-en:#55b7d9; --am-ti:#a06ae0; --am-dis:#d95fb0; --am-alc:#6fc26b;
+  /* броня */
+  --ar-light:#9aa7bd; --ar-heavy:#7f96c9; --ar-power:#d9a441; --ar-comp:#58c2a9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",Roboto,Arial,sans-serif}
+button{font:inherit;color:inherit;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--brass);color:#fff}
+button.primary{background:var(--brass);border-color:var(--brass);color:#1a1408;font-weight:600}
+button.ghost{background:transparent}
+input,select{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:6px 10px;outline:none}
+input:focus,select:focus{border-color:var(--brass)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#2b3a5c;border-radius:6px}
+::-webkit-scrollbar-track{background:transparent}
+.ic{width:13px;height:13px;fill:currentColor;vertical-align:-2px;flex:none}
+.tdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--tc,#888);flex:none}
+
+/* ---------- top bar ---------- */
+#topbar{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#101828,#0d1320 92%);border-bottom:1px solid var(--line);padding:10px 16px 8px;display:flex;flex-direction:column;gap:8px}
+#row1{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#logo{font-size:17px;font-weight:700;letter-spacing:.4px;white-space:nowrap}
+#logo small{display:block;font-size:11px;font-weight:400;color:var(--muted);letter-spacing:0}
+#factions{display:flex;gap:6px;flex-wrap:wrap}
+.ftab{display:flex;align-items:center;gap:7px;padding:6px 13px;border-radius:20px}
+.ftab .dot{width:9px;height:9px;border-radius:50%;background:var(--fc,#888);box-shadow:0 0 6px var(--fc,#888)}
+.ftab.on{background:var(--panel3);border-color:var(--brass);color:#fff}
+.ftab .wip{font-size:10px;color:var(--warn);margin-left:2px}
+.ftab.home{color:var(--muted);padding:6px 11px}
+.ftab.home:hover{color:#fff}
+#row2{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#rosterName{width:220px}
+#fmtCustom{display:none;gap:6px;align-items:center}
+#fmtCustom input{width:76px}
+#pointsBox{display:flex;align-items:center;gap:10px;margin-left:auto}
+#ptsBar{width:150px;height:8px;background:var(--panel2);border-radius:5px;overflow:hidden;border:1px solid var(--line2)}
+#ptsFill{height:100%;width:0;background:var(--ok);transition:width .2s}
+#ptsFill.over{background:var(--err)}
+#ptsText{font-size:16px;font-weight:700;white-space:nowrap}
+#ptsText small{color:var(--muted);font-weight:400}
+#metaText{color:var(--muted);font-size:12px;white-space:nowrap}
+#actions{display:flex;gap:6px;flex-wrap:wrap}
+#actions button{padding:6px 10px}
+
+/* ---------- layout ---------- */
+#wrap{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:14px;padding:14px 16px;align-items:start}
+#catalogPane{min-width:0}
+#factionPane{display:none;min-width:0}
+.fitem{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);text-align:left;width:100%;margin-bottom:8px}
+.fitem.cur{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass) inset}
+.femb{width:40px;height:40px;border-radius:50%;background:var(--panel3);border:2px solid var(--fc,#888);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;color:#fff;flex:none}
+.femb{background:color-mix(in srgb,var(--fc,#888) 22%,var(--panel3))}
+.finf{display:flex;flex-direction:column;min-width:0;gap:1px}
+.finf b{font-size:15.5px}
+.finf small{color:var(--dim);font-size:11.5px}
+.finf .wip{color:var(--warn);font-style:normal;font-size:10px;margin-left:4px}
+.farr{margin-left:auto;color:var(--dim);font-size:19px;flex:none}
+#rosterPane{position:sticky;top:96px;max-height:calc(100vh - 110px);overflow:auto;display:flex;flex-direction:column;gap:12px}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.panel>h3{margin:0;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.panel>h3 button{margin-left:auto;font-size:11px;padding:3px 10px;text-transform:none;letter-spacing:0}
+.panel .bd{padding:12px 14px}
+
+/* ---------- каталог: тулбар и фильтр ---------- */
+#catTools{display:flex;flex-direction:column;gap:9px;margin-bottom:12px}
+#catTools .row1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#filterChips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#filterChips .lbl{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.fchip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:14px;font-size:12px;background:var(--panel2);border:1px solid var(--line2);color:var(--muted);cursor:pointer}
+.fchip{background:color-mix(in srgb,var(--tc,#888) 10%,var(--panel2));border-color:color-mix(in srgb,var(--tc,#888) 45%,transparent)}
+.fchip:hover{color:var(--ink)}
+.fchip.on{color:#fff;border-color:var(--tc,#888);font-weight:600;background:var(--panel3)}
+.fchip.on{background:color-mix(in srgb,var(--tc,#888) 26%,var(--panel2))}
+.fchip .n{font-size:10px;color:var(--dim)}
+.fchip.on .n{color:color-mix(in srgb,#fff 75%,var(--tc))}
+#filterInfo{font-size:12px;color:var(--dim)}
+
+/* ---------- catalog cards ---------- */
+#cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,350px),1fr));gap:12px}
+/* заголовок класса тянется на всю ширину сетки, иначе он встал бы колонкой между карточек */
+.clsHdr{grid-column:1/-1;display:flex;align-items:baseline;gap:10px;margin:10px 0 -2px;
+  padding-bottom:6px;border-bottom:1px solid color-mix(in srgb,var(--tc,#888) 40%,transparent)}
+.clsHdr:first-child{margin-top:0}
+.clsHdr .t{font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--tc,#888)}
+.clsHdr .n{font-size:11px;color:var(--dim)}
+.clsHdr .sub{font-size:11px;color:var(--dim);margin-left:auto;text-align:right}
+.ship{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;position:relative}
+.ship:hover{border-color:var(--line2)}
+.ship .hd{display:flex;align-items:baseline;gap:10px}
+.ship .nm{font-size:16px;font-weight:700;letter-spacing:.5px}
+.ship .rl{color:var(--muted);font-size:12px}
+.ship .pr{margin-left:auto;text-align:right;white-space:nowrap}
+.ship .pr b{font-size:16px;color:var(--brass)}
+.ship .pr small{display:block;color:var(--dim);font-size:10px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--chip);border:1px solid var(--line2);border-radius:6px;padding:1px 8px;font-size:11px;color:var(--muted)}
+.chip.tag{color:var(--ink);border-color:var(--tc,var(--line2))}
+.chip.tag{border-color:color-mix(in srgb,var(--tc,#888) 55%,transparent);background:color-mix(in srgb,var(--tc,#888) 13%,transparent)}
+.chip.tag.hit{box-shadow:0 0 0 1.5px var(--tc);color:#fff}
+.chip.tag.opt{border-style:dashed}
+.chip.kw{border-color:var(--brass);color:var(--brass);cursor:help}
+.chip.armor{font-weight:600}
+.chip.ar-light{color:var(--ar-light);border-color:color-mix(in srgb,var(--ar-light) 55%,transparent);background:color-mix(in srgb,var(--ar-light) 10%,transparent)}
+.chip.ar-heavy{color:var(--ar-heavy);border-color:color-mix(in srgb,var(--ar-heavy) 55%,transparent);background:color-mix(in srgb,var(--ar-heavy) 12%,transparent)}
+.chip.ar-power{color:var(--ar-power);border-color:color-mix(in srgb,var(--ar-power) 55%,transparent);background:color-mix(in srgb,var(--ar-power) 12%,transparent)}
+.chip.ar-comp{color:var(--ar-comp);border-color:color-mix(in srgb,var(--ar-comp) 55%,transparent);background:color-mix(in srgb,var(--ar-comp) 12%,transparent)}
+.stats{display:flex;gap:6px;flex-wrap:wrap}
+.st{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--muted)}
+.st b{color:var(--ink);font-size:13.5px}
+
+/* карточки орудий */
+.wpns{display:flex;flex-direction:column;gap:6px}
+.wpn{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--amc,var(--line2));border-radius:8px;padding:7px 10px}
+.wpn .wh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.wpn .wh b{font-size:13px}
+.ammo{font-size:10.5px;padding:1px 7px;border-radius:5px;font-weight:600;letter-spacing:.3px;color:var(--amc,var(--muted));border:1px solid var(--amc,var(--line2))}
+.ammo{border-color:color-mix(in srgb,var(--amc,#888) 55%,transparent);background:color-mix(in srgb,var(--amc,#888) 12%,transparent)}
+.wpn .ws{display:flex;align-items:center;gap:12px;margin-top:5px;flex-wrap:wrap}
+.vol3{display:inline-flex;align-items:stretch;height:26px;color:var(--line2)}
+.vol3 .bow{flex:none;display:block}
+.vol3 .cells{display:inline-flex;align-items:center;height:26px;box-sizing:border-box;
+  border:1.5px solid var(--line2);border-left:0;border-radius:0 7px 7px 0}
+.vol3 .cells span{display:inline-flex;align-items:center;justify-content:center;height:100%;min-width:26px;padding:0 10px}
+.vol3 .cells span+span{border-left:1px solid var(--line2)}
+.vol3 b{font-size:15px;font-weight:600;color:var(--ink);line-height:1}
+.volraw{font-size:13px;font-weight:700}
+.wrng{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:12px}
+.wrng b{color:var(--ink);font-size:13px}
+.wpn .wr{margin-top:4px;font-size:11.5px;color:var(--muted)}
+.wpn .wr b{color:var(--brass);font-weight:600}
+
+.ab{font-size:12.5px;padding:6px 8px;background:var(--panel2);border-radius:8px;border:1px solid var(--line)}
+.ab b{color:var(--ink)}
+.ab i{color:var(--brass);font-style:normal;font-size:11px}
+.ab .fx{color:var(--muted);margin-top:2px;white-space:pre-line}
+.ship .foot{display:flex;align-items:center;gap:8px;margin-top:auto}
+.inroster{font-size:12px;color:var(--ok)}
+.addbtn{margin-left:auto}
+
+/* ---------- roster ---------- */
+#rosterList{display:flex;flex-direction:column;gap:8px}
+.runit{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:7px}
+.runit.flag{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass) inset}
+.runit .top{display:flex;align-items:center;gap:8px}
+.runit .nm{font-weight:700}
+.runit .rl{color:var(--dim);font-size:11px}
+.runit .cost{margin-left:auto;font-weight:700;color:var(--brass);white-space:nowrap}
+.starbtn{background:transparent;border:none;font-size:17px;padding:0 2px;color:var(--dim);cursor:pointer;line-height:1}
+.starbtn.on{color:var(--brass);text-shadow:0 0 8px rgba(217,164,65,.6)}
+.rm{background:transparent;border:none;color:var(--dim);font-size:15px;padding:0 2px}
+.rm:hover{color:var(--err)}
+.ctl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+.stepper button{border:none;border-radius:0;padding:2px 10px;font-size:15px;background:var(--panel3)}
+.stepper button:disabled{opacity:.35;cursor:default}
+.stepper span{padding:2px 10px;min-width:30px;text-align:center;font-weight:700;font-size:14px;color:var(--ink)}
+.choice{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.choice label{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+.rbody{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line2);padding-top:9px;margin-top:3px}
+#totals{display:flex;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+#totals b{color:var(--ink)}
+#flagInfo{font-size:12.5px}
+#flagInfo .fxbox{background:var(--panel2);border:1px solid var(--brass);border-radius:10px;padding:9px 11px;margin-top:6px}
+#flagInfo .fxbox i{color:var(--brass);font-style:normal;font-size:11px}
+#flagInfo .fxbox .fx{color:var(--muted);margin-top:3px}
+.empty{color:var(--dim);font-size:13px;text-align:center;padding:18px 8px}
+
+/* ---------- synergies (панель ростера) ---------- */
+.syn{border:1px solid var(--line);border-radius:10px;padding:8px 11px;margin-bottom:7px;background:var(--panel2);opacity:.72}
+.syn.on{opacity:1;border-color:var(--ok);background:#1d2c34}
+.syn.on{border-color:color-mix(in srgb,var(--ok) 60%,var(--line));background:color-mix(in srgb,var(--ok) 7%,var(--panel2))}
+.syn .h{display:flex;align-items:center;gap:8px}
+.syn .h b{font-size:13px}
+.syn .cnt{margin-left:auto;font-weight:700;font-size:13px;color:var(--muted)}
+.syn.on .cnt{color:var(--ok)}
+.tierdots{display:inline-flex;gap:3px}
+.tierdots span{font-size:10.5px;padding:0 6px;border:1px solid var(--line2);border-radius:8px;color:var(--dim)}
+.tierdots span.hit{background:var(--ok);border-color:var(--ok);color:#08281a;font-weight:700}
+.syn .ttl{font-size:11px;color:var(--brass);margin-top:2px}
+.syn .fx{font-size:12px;color:var(--muted);margin-top:2px;white-space:pre-line}
+.syn .need{font-size:11px;color:var(--dim);margin-top:2px}
+
+/* ---------- warnings ---------- */
+.warnrow{display:flex;gap:8px;align-items:flex-start;border-radius:9px;padding:7px 10px;font-size:12.5px;margin-bottom:6px}
+.warnrow.err{background:#332123;border:1px solid #8a4a4a;background:color-mix(in srgb,var(--err) 12%,transparent);border-color:color-mix(in srgb,var(--err) 45%,transparent)}
+.warnrow.warn{background:#332e20;border:1px solid #8a7a4a;background:color-mix(in srgb,var(--warn) 10%,transparent);border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+.warnrow.info{background:#20293a;border:1px solid #4a6a8a;background:color-mix(in srgb,var(--sea) 12%,transparent);border-color:color-mix(in srgb,var(--sea) 45%,transparent)}
+.warnrow.okk{background:#20332b;border:1px solid #4a8a6a;background:color-mix(in srgb,var(--ok) 9%,transparent);border-color:color-mix(in srgb,var(--ok) 35%,transparent)}
+
+/* ---------- модалка правил ---------- */
+#rulesModal{position:fixed;inset:0;z-index:120;display:none;background:rgba(5,8,15,.74);backdrop-filter:blur(3px)}
+#rulesModal.open{display:flex;align-items:center;justify-content:center;padding:18px}
+#rmBox{background:var(--panel);border:1px solid var(--line2);border-radius:14px;width:min(980px,100%);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+#rmHead{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);flex:none}
+#rmTitle{font-size:14.5px}
+#rmTabs{display:flex;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);flex:none;background:var(--panel);border-radius:0 0 14px 14px}
+.rmtab{flex:1;text-align:center;padding:9px 4px;border-radius:9px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rmtab.on{background:var(--brass);border-color:var(--brass);color:#1a1408;font-weight:600}
+#rmClose{margin-left:auto;font-size:17px;background:transparent;border:none;color:var(--muted);padding:4px 10px;flex:none}
+#rmClose:hover{color:var(--err)}
+#rmBody{overflow:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.rulegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-top:10px}
+.rule{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.rule .kind{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--brass)}
+.rule b.t{display:block;margin:2px 0 5px;font-size:14px}
+.rule .tx{color:var(--muted);font-size:12.5px;white-space:pre-line}
+.tbl-scroll{overflow-x:auto;max-width:100%}
+table.mini{border-collapse:collapse;font-size:12px;min-width:480px}
+table.mini th,table.mini td{border:1px solid var(--line2);padding:3px 8px;text-align:center;white-space:nowrap}
+table.mini th{background:var(--panel3);color:var(--muted);font-weight:600}
+table.mini td:first-child,table.mini th:first-child{text-align:left}
+.rmsyn{border:1px solid var(--line);border-radius:10px;background:var(--panel2);padding:10px 12px;margin-bottom:9px}
+.rmsyn .h{display:flex;align-items:center;gap:8px}
+.rmsyn .h b{font-size:14px}
+.rmsyn .ttl{color:var(--brass);font-size:12px;margin:1px 0 6px}
+.rmsyn .tier{display:flex;gap:9px;font-size:12.5px;color:var(--muted);margin:4px 0;align-items:flex-start}
+.rmsyn .tier .at{flex:none;font-weight:700;color:var(--ink);border:1px solid var(--line2);border-radius:7px;padding:0 7px;font-size:11.5px}
+.rmsyn .shl{margin-top:7px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.rmsyn .shl .lbl{font-size:11px;color:var(--dim)}
+.shipchip{font-size:11.5px;padding:1px 9px;border-radius:6px;background:var(--chip);border:1px solid var(--line2);color:var(--ink);cursor:pointer}
+.shipchip:hover{border-color:var(--tc,var(--brass))}
+.shipchip.opt{border-style:dashed;color:var(--muted)}
+#rmBody h4{margin:16px 0 4px;color:var(--muted)}
+#rmBody h4:first-child{margin-top:0}
+
+/* ---------- попап-справка по терминам ---------- */
+a.term{color:inherit;text-decoration:underline dotted;text-underline-offset:2px;cursor:pointer}
+a.term{text-decoration-color:color-mix(in srgb,var(--brass) 70%,transparent)}
+a.term:hover{color:var(--brass)}
+.clk{cursor:pointer}
+.chip.clk:hover,.st.clk:hover,.ammo.clk:hover{border-color:var(--brass)}
+b.clk:hover{color:var(--brass)}
+#termPop{position:fixed;inset:0;z-index:140;display:none;background:rgba(5,8,15,.62);backdrop-filter:blur(2px)}
+#termPop.open{display:flex;align-items:center;justify-content:center;padding:16px}
+#tpBox{background:var(--panel);border:1px solid var(--line2);border-radius:14px;width:min(540px,100%);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+#tpHead{display:flex;align-items:baseline;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);flex:none}
+#tpKind{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--brass);white-space:nowrap}
+#tpTitle{font-size:16px}
+#tpClose{margin-left:auto;background:none;border:none;color:var(--muted);font-size:16px;padding:2px 8px;flex:none}
+#tpClose:hover{color:var(--err)}
+#tpBody{padding:12px 14px;overflow:auto;font-size:13px;color:var(--muted);white-space:pre-line;-webkit-overflow-scrolling:touch}
+@media (max-width:760px){
+  #termPop.open{align-items:flex-end;padding:0}
+  #tpBox{width:100%;border-radius:14px 14px 0 0;max-height:75vh}
+}
+
+/* ---------- saved rosters popover ---------- */
+#savedPanel{position:fixed;top:64px;right:16px;z-index:100;width:min(380px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 16px 50px rgba(0,0,0,.55);display:none}
+#savedPanel.open{display:block}
+#savedPanel h3{margin:0;padding:11px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:flex}
+#savedPanel h3 button{margin-left:auto;padding:0 8px;border:none;background:none;font-size:15px}
+.saved{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line)}
+.saved .inf{min-width:0}
+.saved .inf b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saved .inf small{color:var(--dim)}
+.saved .bts{margin-left:auto;display:flex;gap:5px}
+.saved .bts button{padding:3px 9px;font-size:12px}
+#toast{position:fixed;bottom:64px;left:50%;transform:translateX(-50%);background:var(--panel3);border:1px solid var(--brass);color:var(--ink);padding:9px 18px;border-radius:10px;z-index:200;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+
+/* ---------- мобильные: два экрана со свайпом ---------- */
+#mobileBar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:95;background:linear-gradient(0deg,#0d1320,#161f33);border-top:1px solid var(--line2);padding:7px 10px calc(7px + env(safe-area-inset-bottom,0px));gap:8px;box-shadow:0 -8px 24px rgba(0,0,0,.45)}
+.mtab{flex:1;padding:7px 4px;border-radius:10px;font-size:13px;text-align:center;background:transparent;border:1px solid transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;line-height:1.2;gap:1px}
+.mtab.on{background:var(--panel3);border-color:var(--brass);color:#fff;font-weight:600}
+.mtab small{font-size:10px;color:var(--dim);font-weight:400;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mtab.on small{color:var(--brass)}
+/* экран выбора фракции — общий для десктопа и мобилки */
+body.screen-factions #wrap{grid-template-columns:1fr}
+body.screen-factions #catalogPane,body.screen-factions #rosterPane{display:none}
+body.screen-factions #factionPane{display:block;max-width:700px;margin:0 auto;width:100%}
+@keyframes slideL{from{transform:translateX(46px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes slideR{from{transform:translateX(-46px);opacity:.4}to{transform:none;opacity:1}}
+.slide-l{animation:slideL .18s ease-out}
+.slide-r{animation:slideR .18s ease-out}
+@media (max-width:1100px){
+  #wrap{grid-template-columns:1fr;padding:10px 10px 84px}
+  #factions{display:none}
+  #mobileBar{display:flex}
+  #rosterPane{position:static;max-height:none;overflow:visible;display:none}
+  #factionPane{display:none}
+  body.screen-roster #rosterPane{display:flex}
+  body.screen-roster #catalogPane{display:none}
+}
+@media (max-width:760px){
+  #topbar{position:static;padding:10px 10px 8px}
+  input,select{font-size:16px}
+  #rosterName{flex:1;min-width:150px}
+  #pointsBox{margin-left:0;width:100%}
+  #ptsBar{flex:1;width:auto}
+  #rulesModal.open{padding:0}
+  #rmBox{width:100%;height:100vh;max-height:100vh;border-radius:0}
+  #rmBox{height:100dvh;max-height:100dvh}
+}
+
+/* ---------- print ---------- */
+#printRoot{display:none}
+@media print{
+  body{background:#fff;color:#111;font:11px/1.35 "Segoe UI",Arial,sans-serif}
+  #topbar,#wrap,#savedPanel,#toast,#mobileBar,#rulesModal,#termPop{display:none !important}
+  #printRoot{display:block}
+  @page{margin:11mm}
+}
+#printRoot .ph{border-bottom:2.5px solid #222;padding-bottom:6px;margin-bottom:10px;display:flex;align-items:baseline;gap:14px}
+#printRoot .ph h1{margin:0;font-size:19px}
+#printRoot .ph .sub{color:#444;font-size:11px}
+#printRoot .ph .pts{margin-left:auto;font-size:16px;font-weight:700;white-space:nowrap}
+#printRoot h2{font-size:13px;margin:12px 0 6px;border-bottom:1.5px solid #333;padding-bottom:2px;text-transform:uppercase;letter-spacing:.5px}
+#printRoot .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#printRoot .pcard{border:1.2px solid #333;border-radius:6px;padding:7px 9px;break-inside:avoid;page-break-inside:avoid}
+#printRoot .pcard .hd{display:flex;align-items:baseline;gap:8px;border-bottom:1px solid #999;padding-bottom:3px;margin-bottom:4px}
+#printRoot .pcard .hd b{font-size:13.5px}
+#printRoot .pcard .hd .role{color:#444;font-size:10px}
+#printRoot .pcard .hd .cost{margin-left:auto;font-weight:700;white-space:nowrap}
+#printRoot .meta{color:#333;font-size:10px;margin-bottom:3px}
+#printRoot .meta b{font-size:11px;color:#000}
+#printRoot table.pw{border-collapse:collapse;width:100%;font-size:10px;margin:3px 0}
+#printRoot table.pw th,#printRoot table.pw td{border:1px solid #888;padding:2px 5px;text-align:left;vertical-align:top}
+#printRoot table.pw th{background:#eee;font-size:9px;text-transform:uppercase}
+#printRoot .pab{font-size:10px;margin:2px 0;padding:3px 5px;background:#f2f2f2;border-radius:4px}
+#printRoot .pab i{font-style:normal;color:#555;font-size:9px}
+#printRoot .ptags{font-size:9.5px;color:#333;margin-top:2px}
+#printRoot .dmg{margin-top:4px;font-size:9px;color:#444;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+#printRoot .dmg .grp{display:inline-flex;gap:1.5px;margin-right:6px}
+#printRoot .dmg .bx{width:9px;height:9px;border:1.1px solid #333;border-radius:2px;display:inline-block}
+#printRoot .dmg .bx.esc{border-radius:50%;border-width:1.6px}
+#printRoot .dmg .bx.str{width:11px;height:11px;border-width:1.6px;border-style:dashed}
+#printRoot .flagmark{color:#000;font-weight:700}
+#printRoot .psyn{border:1px solid #333;border-radius:6px;padding:5px 8px;margin-bottom:5px;break-inside:avoid;font-size:10.5px}
+#printRoot .psyn b{font-size:11px}
+#printRoot .prule{break-inside:avoid;border:1px solid #999;border-radius:6px;padding:5px 8px;margin-bottom:5px;font-size:10px}
+#printRoot .prule .kind{font-size:8.5px;text-transform:uppercase;color:#666}
+#printRoot .prule b.t{display:block;font-size:11px}
+#printRoot .prule .tx{color:#222;white-space:pre-line}
+#printRoot .two{column-count:2;column-gap:10px}
+#printRoot table.mini{border-collapse:collapse;font-size:10px;width:auto;min-width:0}
+#printRoot table.mini th,#printRoot table.mini td{border:1px solid #777;padding:2px 8px;text-align:center;white-space:normal}
+#printRoot table.mini th{background:#eee}
+#printRoot .pfoot{margin-top:10px;color:#777;font-size:9px;border-top:1px solid #bbb;padding-top:3px}
+.pagebreak{page-break-before:always;break-before:page}
+</style>
+</head>
+<body>
+
+<div id="bootWarn" style="margin:12px;padding:13px 16px;background:#3a2424;border:1px solid #a85454;border-radius:12px;color:#f2dcdc;font:14px/1.5 'Segoe UI',Arial,sans-serif">
+  <b>⚠ Билдер не запустился — JavaScript не выполнился.</b><br>
+  Чаще всего так бывает, когда файл открыт во встроенном просмотрщике (предпросмотр в мессенджере, быстрый просмотр в «Файлах» на iPhone) — там JavaScript отключён.<br>
+  Откройте файл в обычном браузере: на Android — скачать и открыть в Chrome; на iPhone — «Поделиться» → Safari / Chrome.
+  <div id="bootErr" style="margin-top:7px;color:#ffb8b8;font-size:12px"></div>
+</div>
+
+<header id="topbar">
+  <div id="row1">
+    <div id="logo">⚓ Конструктор флота<small>ростеры для настольного варгейма</small></div>
+    <nav id="factions"></nav>
+    <div id="actions">
+      <button id="btnSave" title="Сохранить ростер в браузере">💾 Сохранить</button>
+      <button id="btnSaved" title="Сохранённые ростеры">📂 Ростеры</button>
+      <button id="btnExport" title="Скачать JSON">⬇ JSON</button>
+      <button id="btnImport" title="Загрузить из JSON">⬆ Импорт</button>
+      <button id="btnCopy" title="Скопировать текстом">📋 Текст</button>
+      <button id="btnPrint" class="primary" title="Версия для печати">🖨 Печать</button>
+      <input type="file" id="importFile" accept=".json" style="display:none">
+    </div>
+  </div>
+  <div id="row2">
+    <input id="rosterName" placeholder="Название ростера…" maxlength="60">
+    <select id="fmtSel"></select>
+    <span id="fmtCustom">
+      <input id="cPts" type="number" min="100" step="50" value="1000" title="очки"> очк,
+      <input id="cOrd" type="number" min="1" step="1" value="6" title="приказы"> приказов
+    </span>
+    <button id="btnClear" class="ghost" title="Очистить текущий ростер">✕ Очистить</button>
+    <div id="pointsBox">
+      <span id="metaText"></span>
+      <div id="ptsBar"><div id="ptsFill"></div></div>
+      <span id="ptsText"></span>
+    </div>
+  </div>
+</header>
+
+<div id="wrap">
+  <section id="factionPane"></section>
+  <section id="catalogPane">
+    <div id="catTools">
+      <div class="row1">
+        <button data-rules="fleet">⚓ Правила флота</button>
+        <button data-rules="syn">✦ Синергии</button>
+        <button data-rules="common">📖 Общие правила</button>
+        <span id="filterInfo"></span>
+      </div>
+      <div id="filterChips"></div>
+    </div>
+    <div id="cards"></div>
+  </section>
+
+  <aside id="rosterPane">
+    <div class="panel">
+      <h3 id="rosterHdr">Ростер</h3>
+      <div class="bd">
+        <div id="rosterList"></div>
+        <div id="totals" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="panel"><h3>Флагман</h3><div class="bd" id="flagInfo"></div></div>
+    <div class="panel"><h3>Синергии</h3><div class="bd" id="synList"></div></div>
+    <div class="panel"><h3>Проверка</h3><div class="bd" id="warnList"></div></div>
+  </aside>
+</div>
+
+<div id="rulesModal">
+  <div id="rmBox">
+    <div id="rmHead">
+      <b id="rmTitle">Справка</b>
+      <button id="rmClose" title="Закрыть (Esc)">✕</button>
+    </div>
+    <div id="rmBody"></div>
+    <div id="rmTabs">
+      <button class="rmtab" data-tab="fleet">Правила флота</button>
+      <button class="rmtab" data-tab="syn">Синергии</button>
+      <button class="rmtab" data-tab="common">Общие правила</button>
+    </div>
+  </div>
+</div>
+
+<div id="mobileBar">
+  <button class="mtab" data-screen="factions"><span>☰ Фракции</span><small id="mbFaction"></small></button>
+  <button class="mtab" data-screen="catalog"><span>⚓ Флот</span><small id="mbShips"></small></button>
+  <button class="mtab" data-screen="roster"><span>Ростер</span><small id="mbPts"></small></button>
+</div>
+<div id="termPop"><div id="tpBox">
+  <div id="tpHead"><span id="tpKind"></span><b id="tpTitle"></b><button id="tpClose" title="Закрыть">✕</button></div>
+  <div id="tpBody"></div>
+</div></div>
+<div id="savedPanel"></div>
+<div id="toast"></div>
+<div id="printRoot"></div>
+
+<script>
+"use strict";
+/* ==================== ДАННЫЕ ==================== */
+const FACTIONS = [{"id":"brit","name":"Британия","color":"#c23b3b","wip":false,"flagshipAbility":{"name":"Защитник Короны","type":"Пассивная","trigger":"Когда союзное соединение в 12 дюймах получает Щит Стража","effect":"Один раз за раунд вы можете выбрать союзное соединение в 12 дюймах, оно так же получит Щит Стража"},"synergies":[{"tag":"Royal Engeneers","title":"Полевой ремонт","tiers":[{"at":2,"effect":"Соединения вашего флота получают +2 к Экипажу для теста Борьбы за живучесть"}]},{"tag":"Home Fleet","title":"Снаряжены и готовы","tiers":[{"at":3,"effect":"Атаки соединений с данным тэгом, имеющих максимальное кол-во жетонов состояния Щит Стража получают +2 к суммарному Залпу"},{"at":6,"effect":"Атаки соединений вашего флота, имеющих максимальное кол-во жетонов состояния Щит Стража получают +2 к суммарному Залпу"}]},{"tag":"Canadian Fleet","title":"Верность превыше всего","tiers":[{"at":2,"effect":"Когда соединение с этим тегом успешно проходит тест на Панику, оно получает состояние Щит Стража"},{"at":4,"effect":"Лимит состояния \"Щит Стража\" соединений с этим тэгом увеличен на 1. Когда соединение с этим тегом успешно проходит тест на Панику, оно получает состояние Щит Стража"},{"at":6,"effect":"Лимит состояния \"Щит Стража\" соединений вашего флота увеличен на 1. Когда соединение с этим тегом успешно проходит тест на Панику, оно получает состояние Щит Стража"}]},{"tag":"East India Company","title":"Великий торговый путь","tiers":[{"at":3,"effect":"Выполняя дествие \"Боевой строй\" соединения вашего флота получают +2 к скорости"},{"at":6,"effect":"Выполняя действие \"Боевой строй\" соединения вашего флота получают +4 к скорости"}]},{"tag":"Ironsides","title":"Никогда не сдаваться","tiers":[{"at":2,"effect":"В начале 4 и последующих раундов каждое соединение вашего флота получает состояие Щит Стража"},{"at":4,"effect":"В начале 3 и последующих раундов каждое соединение вашего флота получает состояие Щит Стража"},{"at":6,"effect":"В начале 2 и последующих раундов каждое соединение вашего флота получает состояие Щит Стража"}]},{"tag":"Crusaders Movement","title":"Правь морями","tiers":[{"at":2,"effect":"Вы получаете дополнительную Ударную группу, которую должны разместить на соединении с этим тэгом. В начале своей активации соединение с этим тэгом может снять с себя Щит Стража чтобы получить состояние Рвение"},{"at":4,"effect":"Вы получаете 2 дополнительных Ударных группы. В начале своей активации соединение вашего флота может снять с себя Щит Стража чтобы получить состояние Рвение"}]},{"tag":"Royal Vanguard","title":"Никто кроме нас","tiers":[{"at":3,"effect":"Если соединение с данным тегом активируется до того, как в этом раунде было активировано союзное соединение, то в конце активации оно получает состояние Укрепление"}]},{"tag":"The Long Watch","title":"Легендарные капитаны","tiers":[{"at":2,"effect":"Выполняя действие \"Боевой строй\" соединения с этим тэгом могут выполнить поворот по завершению движения"},{"at":4,"effect":"Выполняя действие \"Боевой строй\" соединения вашего флота могут выполнить поворот по завершению движения"}]},{"tag":"Royal Airforce","title":"Прикрытие с воздуха","tiers":[{"at":2,"effect":"Когда соединение с данным тэгом теряет состояние \"Барражирование\", выберите союзное соединение в 6. Оно получает состояние \"Щит Стража\""},{"at":4,"effect":"Когда соединение с данным тэгом теряет состояние \"Барражирование\", каждое союзное соединение в 6 получает состояние \"Щит Стража\""}]}],"ships":[{"name":"BRITANNIA","country":"Британия","role":"Линкор","shipType":"Классический","size":3,"price":120,"squad":[1,1],"crew":8,"speed":4,"hull":10,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"6_12_6","range":12,"rules":""}],"abilities":[{"name":"Надежная конструкция","type":"Пассивная","trigger":"В начале раунда","effect":"Данное соединение получает Щит Стража"}],"keywords":[],"tags":["The Long Watch","Ironsides"]},{"name":"GLORIANA","country":"Британия","role":"Линкор превосходства","shipType":"Классический","size":4,"price":210,"squad":[1,1],"crew":8,"speed":5,"hull":12,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Энергетический","volley":"8_16_8","range":14,"rules":""}],"abilities":[{"name":"Ударное соединение","type":"Приказ","trigger":"После завершения первой активации соединения","effect":"Один раз за игру в свой ход вы можете, потратив дополнительный жетон приказа, активировать данное соединение второй раз за раунд"},{"name":"Львиный рев","type":"Пассивная","trigger":"Когда атака данного соединения успешно наносит урон противнику","effect":"Положите Щит Стража на союзное соединение в 12 от данного соединения"}],"keywords":[],"tags":["Crusaders Movement","Royal Engeneers"]},{"name":"VICTORY","country":"Британия","role":"Тяжелый авианосец","shipType":"Классический","size":4,"price":185,"squad":[1,1],"crew":7,"speed":3,"hull":12,"armor":"Силовая","weapons":[{"name":"Вспомогательные орудия","ammo":"Фугасный","volley":"8_8_4","range":8,"rules":""},{"name":"Эскадрилия Сордфишей","ammo":"Бронебойный","volley":"8_8_8","range":8,"rules":"Авиация, Торпеда, Бронелом"}],"abilities":[{"name":"Плавучая крепость","type":"Пассивная","trigger":"Нет","effect":"Данное соединение может совершать \"Полный вперед\" в фазу резервов вместо \"Маневра\". Так же в фазу резервов даное соединение может запускать авиацию и совершать действие движения одновременно"},{"name":"Ответный огонь","type":"Пассивная","trigger":"Когда данное соединение лишается всех состояний \"Щит Стража\" в результате атаки","effect":"Вы можете немедленно произвести внеочередную атаку из \"Вспомогательных орудий\" по легальной цели"}],"keywords":[],"tags":["Home Fleet","Royal Engeneers"]},{"name":"CAMELOT","country":"Британия","role":"Высший страж","shipType":"Классический","size":4,"price":200,"squad":[1,1],"crew":9,"speed":4,"hull":14,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Энергетический","volley":"6_12_6","range":12,"rules":""}],"abilities":[{"name":"Защитное поле","type":"Пассивная","trigger":"Нет","effect":"Данное соединение может иметь до 4 состояний \"Щит стража\". Союзные соединения в 12 от данного соединения могут использовать его Щиты Стража как свои собственные"}],"keywords":[],"tags":["Canadian Fleet","Crusaders Movement"]},{"name":"GANGES","country":"Британия","role":"Линейный крейсер","shipType":"Классический","size":3,"price":110,"squad":[1,1],"crew":7,"speed":5,"hull":8,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"4_8_4","range":10,"rules":"Критическое (Замедление)"},{"name":"Торпедные турели Вайтхеда","ammo":"Энергетический","volley":"6_3_0","range":6,"rules":"Торпеда, Бронелом, Критическое (Замедление)"}],"abilities":[{"name":"Гончая","type":"Пассивная","trigger":"Когда данное соединение атакует в заднюю арку","effect":"Соединение считается атакующим в переднюю арку для определения базового шанса попадания и работы правила \"Черта над Т\""}],"keywords":[],"tags":["East India Company","Ironsides"]},{"name":"AVALON","country":"Британия","role":"Воля Короны","shipType":"Летающий","size":3,"price":190,"squad":[1,1],"crew":8,"speed":5,"hull":10,"armor":"Силовая","weapons":[{"name":"РСЗО \"Королева\"","ammo":"Фугасный","volley":"8_8_8","range":6,"rules":"Ракета, Канонада"},{"name":"Эскадрилья Сордфишей","ammo":"Бронебойный","volley":"6_6_6","range":8,"rules":"Авиация, Торпеда, Бронелом"}],"abilities":[{"name":"Демонстрация силы","type":"Пассивная","trigger":"Когда данное соединение обьявляет атаку","effect":"Если в этом ходу данное соединение потеряло состояние \"Барражирование\", вы можете атаковать обоими Орудиями, вместо выбора одного из них. Атаки могут быть направлены в разные цели. Отработайте атаки в любом порядке"}],"keywords":[],"tags":["Royal Airforce","Home Fleet"]},{"name":"LANCELOT","country":"Британия","role":"Линейный крейсер","shipType":"Классический","size":2,"price":70,"squad":[1,2],"crew":8,"speed":5,"hull":5,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Энергетический","volley":"3_6_3","range":10,"rules":""}],"abilities":[{"name":"Держать строй","type":"Пассивная","trigger":"Если активируется в 6 дюймах от Флагмана","effect":"Данное соединение получает Щит Стража, затем флагман получает Щит Стража"}],"keywords":[],"tags":["Crusaders Movement","Ironsides"]},{"name":"ALBION","country":"Британия","role":"Крейсер","shipType":"Классический","size":2,"price":35,"squad":[1,3],"crew":7,"speed":5,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Фугасный","volley":"3_6_3","range":8,"rules":""}],"abilities":[{"name":"Тори и Виги","type":"Пассивная","trigger":"Нет","effect":"Включая данное соединение в состав флота, вы можете добавить тэг Long Watch или тэг Crusader. Такие соединения считаются разными типами соединений для подсчета тэгов"}],"keywords":[],"tags":["Home Fleet"],"choice":{"label":"Тори и Виги — дополнительный тэг","options":["The Long Watch","Crusaders Movement"],"pick":1,"distinct":true}},{"name":"PICTON","country":"Британия","role":"Легкий крейсер","shipType":"Классический","size":2,"price":35,"squad":[1,3],"crew":7,"speed":6,"hull":3,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Фугасный","volley":"4_4_0","range":8,"rules":""},{"name":"Торпеды Вайтхеда","ammo":"Энергетический","volley":"2_0_0","range":6,"rules":"Торпеда, Бронелом"}],"abilities":[{"name":"Одинокий рейдер","type":"Пассивная","trigger":"Если начинает активацию дальше 6 от союзного соединения","effect":"Данное соединение получает Щит Стража"},{"name":"Не сбрасывать о счетов","type":"Пассивная","trigger":"Если имеет максимальное кол-во Щитов Стража","effect":"Получает +2 к Экипажу и +2 к суммарному Залпу"}],"keywords":[],"tags":["The Long Watch","Royal Vanguard"]},{"name":"NEWFOUNDLAND","country":"Британия","role":"Ударный крейсер","shipType":"Классический","size":2,"price":40,"squad":[1,3],"crew":8,"speed":4,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"6_6_0","range":8,"rules":""}],"abilities":[{"name":"Самые верные Ее Величества","type":"Пассивная","trigger":"Нет","effect":"На этапе составления армии тег данного соединения Canadian учитывается дважды"}],"keywords":[],"tags":["Canadian Fleet","Ironsides"],"synergyWeightTag":{"Canadian Fleet":2}},{"name":"INDUS","country":"Британия","role":"Крейсер","shipType":"Классический","size":2,"price":35,"squad":[1,3],"crew":6,"speed":6,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Фугасный","volley":"3_5_2","range":8,"rules":""}],"abilities":[{"name":"Знакомые воды","type":"Пассивная","trigger":"Когда данное соединение выполняет действие движения","effect":"Один раз за игру вы можете совершить поворот в процессе выполнения действия движения. Этот поворот может прервать движение; оно продолжится после совершения поворота."}],"keywords":[],"tags":["East India Company","The Long Watch"]},{"name":"MORGANA","country":"Британия","role":"Ударная подлодка","shipType":"Подводный","size":2,"price":60,"squad":[1,3],"crew":8,"speed":5,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Торпедные аппараты Вайтхеда","ammo":"Энергетический","volley":"4_0_4","range":6,"rules":"Торпеда, Бронелом"}],"abilities":[{"name":"Килевая пила","type":"Пассивная","trigger":"Когда данное соединение проходит через вражеское соединение, находящееся на высоте 1","effect":"Нанесите целевому соединению д3 Повреждения. Таким образом можно повредить только одно соединение за одно действие движения"}],"keywords":[],"tags":["Royal Engeneers","Royal Vanguard"]},{"name":"BEDIVERE","country":"Британия","role":"Патрульный крейсер","shipType":"Классический","size":2,"price":30,"squad":[1,4],"crew":8,"speed":4,"hull":3,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Фугасный","volley":"2_4_2","range":8,"rules":""}],"abilities":[{"name":"Стража побережья","type":"Пассивное","trigger":"Данное соединение получает Щит Стража","effect":"Данное соединение получает дополнительный Щит Стража"}],"keywords":["Лимит состояний \"Щит стража\" данного соединения увеличен на 1"],"tags":["Home Fleet","Ironsides"]},{"name":"CALIBURN","country":"Британия","role":"Миноносец","shipType":"Классический","size":1,"price":20,"squad":[3,6],"crew":7,"speed":6,"hull":2,"armor":"Легкая","weapons":[{"name":"Торпеды Вайтхеда","ammo":"Энергетический","volley":"2_0_0","range":4,"rules":"Торпеда, Бронелом"}],"abilities":[{"name":"В тени эскадры","type":"Пассивная","trigger":"Нет","effect":"Данное соединение нельзя выбрать целью атаки, если только оно не является ближайшим"}],"keywords":[],"tags":["Ironsides","Royal Vanguard"]},{"name":"EXCALIBUR","country":"Британия","role":"Фрегат огневой поддержки","shipType":"Классический","size":1,"price":30,"squad":[2,4],"crew":7,"speed":6,"hull":3,"armor":"Легкая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"1_3_1","range":6,"rules":""}],"abilities":[{"name":"Наводчик","type":"Пассивная","trigger":"Когда союзное соединение в 6 атакует цель, находящуюся в 6 от данного соединения","effect":"Вы можете снять с данного соединения Щит стража, в этом случае атакующее соединение может перебросить проваленные броски Атаки"}],"keywords":[],"tags":["Crusaders Movement","Royal Vanguard"]},{"name":"ORCA","country":"Британия","role":"Патрульная подлодка","shipType":"Подводный","size":1,"price":25,"squad":[3,6],"crew":8,"speed":6,"hull":2,"armor":"Легкая","weapons":[{"name":"Следящие торпеды","ammo":"Энергетический","volley":"2_0_0","range":4,"rules":"Торпеда, Критический (Метка)"}],"abilities":[{"name":"Отчаянное погружение","type":"Пассивная","trigger":"Когда корабль в данном соединении уничтожен","effect":"Вы можете немедленно положить на данное соединение состояние \"Погружение\""}],"keywords":[],"tags":["Canadian Fleet","The Long Watch"]},{"name":"GHARIAL","country":"Британия","role":"Десантный скиммер","shipType":"Скиммер","size":1,"price":20,"squad":[2,4],"crew":8,"speed":5,"hull":2,"armor":"Легкая","weapons":[{"name":"Картечницы","ammo":"Фугасный","volley":"2_2_0","range":4,"rules":""}],"abilities":[{"name":"Сипаи","type":"Пассивная","trigger":"Нет","effect":"Дальность Абордажа данного соединения увеличена до 3. Данное соединение может совершать Абордаж действием движения, если целью является Обьект миссии."}],"keywords":[],"tags":["East India Company","Crusaders Movement"]},{"name":"SAXON","country":"Британия","role":"Разведывательный ротор","shipType":"Летающий","size":1,"price":30,"squad":[2,4],"crew":7,"speed":7,"hull":2,"armor":"Легкая","weapons":[{"name":"Торпедная турель Вайтхеда","ammo":"Бронебойный","volley":"2_2_2","range":4,"rules":"Торпеда, Бронелом"}],"abilities":[{"name":"Сигнал к атаке","type":"Пассивная","trigger":"Когда данное соединение наносит Повреждение соединению противника","effect":"Вы можете положить состояние \"Ускорение\" на союзное соединение в 6"}],"keywords":[],"tags":["Royal Airforce","Royal Vanguard"]}]},{"id":"ger","name":"Германия","color":"#4d79c2","wip":false,"flagshipAbility":{"name":"Резервные генераторы","type":"Пассивная","trigger":"В начале раунда","effect":"Положите состояние Ионизация на целевое соединение в 18"},"synergies":[{"tag":"Sturmführer","title":"Рукотворная буря","tiers":[{"at":2,"effect":"В начале второго раудра разместите специальный элемент ландшафта \"Буря\" в 8 дюймах от любого соединения с этим тэгом. В конце каждого раунда вы можете передвинуть любую находящуюся на столе \"Бурю\" на 6 дюймов в любом направлении."},{"at":4,"effect":"В начале второго раудра разместите специальный элемент ландшафта \"Буря Тысячелетия\" в 8 дюймах от любого соединения с этим тэгом. В конце раунда вы можете передвинуть любую находящуюся на столе \"Бурю\" или \"Бурю тысячелетия\" на 6 дюймов в любом направлении."}]},{"tag":"Prussian","title":"План операции","tiers":[{"at":2,"effect":"Пока ваш флагман в строю, на протяжении первого хода игры соединения флота перебрасывают 1 на броске атаки"},{"at":4,"effect":"Пока ваш флагман в строю, на протяжении первого и второго ходов игры соединения флота перебрасывают 1 на броске атаки"},{"at":6,"effect":"Пока ваш флагман в строю, на протяжении первого, второго и третьего ходов игры соединения флота перебрасывают 1 на броске атаки"}]},{"tag":"Scandinavian","title":"Зов Вальгаллы","tiers":[{"at":2,"effect":"Вы получаете дополнительную Ударную группу, которую должны разместить на соединении с этим тэгом. Вражеские Ударные группы не могут блокировать абордажи ваших Ударных групп."},{"at":4,"effect":"Вы получаете 2 дополнительных Ударных группы, которые должны разместить на соединениях с этим тэгом. Перед броском на абордаж инициированным вашей Ударной группой уберите все жетоны Ударных групп с целевого соединения."},{"at":6,"effect":"Вы получаете 3 дополнительных Ударных группы, которые должны разместить на соединениях с этим тэгом. Перед броском на абордаж инициированным вашим соединением уберите все жетоны положительных состояний с целевого соединения."}]},{"tag":"Teutonic","title":"Продвинутые ионизирующие катушки","tiers":[{"at":3,"effect":"Дальность \"Удара молнии\" повышается до 10 дюймов"},{"at":6,"effect":"Дальность \"Удара молнии\" повышается до 12 дюймов, а Залп - до д3+1"}]},{"tag":"Reichsgarde","title":"Лучшие из лучших","tiers":[{"at":2,"effect":"Соединения флота получают +1 к Экипажу"}]},{"tag":"Nachtgeist","title":"Атака на рассвете","tiers":[{"at":3,"effect":"В начале игры все союзные соединения получают состояние \"Укрытие\""}]},{"tag":"Jäger","title":"Молниеносный удар","tiers":[{"at":2,"effect":"В начале первого хода игрока все союзные соединения могут совершить действие движения \"Маневр\""},{"at":4,"effect":"В начале первого хода игрока все союзные соединения могут совершить действие движения \"Маневр\" или действие движения \"Полный вперед\", выбор индивидуальный для каждого соединения"}]},{"tag":"Seewölfe","title":"Охота на слабых","tiers":[{"at":3,"effect":"Если соединение с данным тэгом атакует соединение противника, которое находится дальше 6 от союзных соединений, то целевое соединение получает состояние Метка. Если оно уже имеет состояние Метка, то получает состояние Уязвимость."},{"at":6,"effect":"Если соединение вашего флота атакует соединение противника, которое находится дальше 6 от союзных соединений, то целевое соединение получает состояние Метка. Если оно уже имеет состояние Метка, то получает состояние Уязвимость."}]}],"ships":[{"name":"KAISER","country":"Германия","role":"Тяжелый линкор прорыва","shipType":"Классический","size":3,"price":120,"squad":[1,1],"crew":9,"speed":4,"hull":10,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"6_12_6","range":12,"rules":"Вольтех, Буревестник"}],"abilities":[{"name":"Штормовой фронт","type":"Пассивная","trigger":"Нет","effect":"Пока цель атаки данного соединения находится в контакте с Бурей или Бурей Тысячеления, эта атака получает правило \"Канонада\""}],"keywords":[],"tags":["Reichsgarde","Sturmführer"]},{"name":"ELECTOR","country":"Германия","role":"Линкор","shipType":"Классический","size":3,"price":130,"squad":[1,1],"crew":8,"speed":5,"hull":8,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"0_6_6","range":12,"rules":"Вольтех"},{"name":"Бомбарда \"Густав\"","ammo":"Титанический","volley":"4_0_0","range":18,"rules":"Вольтех, Летальное, Выбор цели"}],"abilities":[{"name":"Вожак стаи","type":"Пассивная","trigger":"После завершения активации Электора","effect":"Не передавайте ход противнику; вместо этого немедленно активируйте одно из своих соединений"}],"keywords":[],"tags":["Prussian","Seewölfe","Jäger"]},{"name":"TEMPELHOF","country":"Германия","role":"Ударный авианосец","shipType":"Классический","size":3,"price":120,"squad":[1,1],"crew":8,"speed":5,"hull":8,"armor":"Силовая","weapons":[{"name":"Эскадрилья Блитзенов","ammo":"Энергетический","volley":"8_8_8","range":8,"rules":"Авиация, Вольтех, Буревестник"}],"abilities":[{"name":"Передовое развертывание эскадрилий","type":"Пассивная","trigger":"Начало первого раунда","effect":"Вы немедленно можете разместить жетон Эскадрильи данного соединения на любом союзном соединении"}],"keywords":[],"tags":["Prussian","Nachtgeist"]},{"name":"BLUCHER","country":"Германия","role":"Крейсер","shipType":"Классический","size":2,"price":35,"squad":[1,3],"crew":8,"speed":5,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Фугасный","volley":"6_6_0","range":8,"rules":"Вольтех"}],"abilities":[{"name":"Массовое производство","type":"Пассивная","trigger":"Нет","effect":"Теги двух соединений Блюхеров могут быть засчитаны для активации эффектов синергий"}],"keywords":[],"tags":["Prussian","Seewölfe"],"synergyCap":2},{"name":"FERDINAND","country":"Германия","role":"Крейсер превосходства","shipType":"Классический","size":2,"price":65,"squad":[1,2],"crew":9,"speed":6,"hull":5,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"6_6_0","range":8,"rules":"Вольтех"}],"abilities":[{"name":"Ударное соединение","type":"Приказ","trigger":"После завершения первой активации соединения","effect":"Один раз за игру в свой ход вы можете, потратив дополнительный жетон приказа, активировать данное соединение второй раз за раунд"}],"keywords":[],"tags":["Teutonic","Reichsgarde"]},{"name":"VOLSUNG","country":"Германия","role":"Штурмовой крейсер","shipType":"Классический","size":2,"price":55,"squad":[1,3],"crew":8,"speed":6,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Sturmspeer","ammo":"Энергетический","volley":"6_0_0","range":4,"rules":"Вольтех, Бронелом, Буревестник"}],"abilities":[{"name":"Молот Тора","type":"Пассивная","trigger":"Когда атака данного соединения активирует эффект состояния \"Ионизация\"","effect":"Вы можете атаковать \"Ударом молнии\" два раза вместо одного; целью данных атак должны быть разные соединения"}],"keywords":[],"tags":["Teutonic","Sturmführer"]},{"name":"TOTEN","country":"Германия","role":"Тяжелый дестроер","shipType":"Классический","size":1,"price":35,"squad":[2,4],"crew":8,"speed":6,"hull":3,"armor":"Легкая","weapons":[{"name":"Sturmpfeil","ammo":"Энергетический","volley":"3_0_0","range":2,"rules":"Вольтех, Бронелом"}],"abilities":[{"name":"Контур обратной связи","type":"Пассивная","trigger":"Когда атака данного соединения активирует эффект состояния \"Ионизация\"","effect":"Вы можете поразить \"Ударом молнии\" то же соединение, с которого только что сняли \"Ионизацию\""}],"keywords":[],"tags":["Teutonic","Nachtgeist"]},{"name":"ARMINIUS","country":"Германия","role":"Фрегат","shipType":"Классический","size":1,"price":20,"squad":[3,6],"crew":8,"speed":7,"hull":2,"armor":"Легкая","weapons":[{"name":"Автопушка","ammo":"Фугасный","volley":"2_2_0","range":4,"rules":"Вольтех"}],"abilities":[{"name":"Нестабильный генератор","type":"Пассивная","trigger":"Когда корабль в данном соединении уничтожен","effect":"Вы можете произвести выстрел \"Ударом молнии\", но считаетесь бросившим 1 на кол-во попаданий в Залпе. Дистанция отмеряется от уничтоженного корабля"}],"keywords":[],"tags":["Prussian","Jäger"]},{"name":"SIGIMER","country":"Германия","role":"Тяжелый фрегат","shipType":"Классический","size":2,"price":30,"squad":[2,4],"crew":8,"speed":6,"hull":3,"armor":"Легкая","weapons":[{"name":"Главный калибр","ammo":"Фугасный","volley":"4_4_0","range":6,"rules":"Вольтех"}],"abilities":[{"name":"Око бури","type":"Пассивное","trigger":"Когда \"Удар молнии\" поражает цель в 6 от данного соединения","effect":"Данная атака получает +1 к Залпу"}],"keywords":[],"tags":["Jäger","Seewölfe"]}]},{"id":"usa","name":"США","color":"#3f9b6e","wip":false,"flagshipAbility":{"name":"Командный центр","type":"Пассивная","trigger":"В начале активации данного соединения","effect":"Положите на соединение противника в пределах 18 состояние \"Крылья свободы\""},"synergies":[{"tag":"Mavericks","title":"Наездники на волнах","tiers":[{"at":3,"effect":"Соединения с данным тэгом и типом \"Колесное\" могут совершить поворот до и после движения (всего два поворота) выполняя действие движения \"Маневр\""}]},{"tag":"Secret Service","title":"Разведывательная миссия","tiers":[{"at":2,"effect":"В начале игры положите жетон \"Специального агента\" на одно из ваших соединений. Жетон \"Специального агента\" работает как Ударная группа для целей абордажа. Если абордаж инициированный \"Специальным агентом\" нанет повреждения соединению противника, получите 1 победное очко."}]},{"tag":"Skywatch","title":"Глаза в небесах","tiers":[{"at":3,"effect":"Атаки по соединениям противника в радиусе способности \"Наводчик\" соединений Acron получают +1 к суммарному Залпу, и еще +1 если в процессе данной Атаки используется состояние Крылья свободы"},{"at":6,"effect":"Атаки по соединениям противника в радиусе способности \"Наводчик\" соединений Acron получают +2 к суммарному Залпу, и еще +2 если в процессе данной Атаки используется состояние Крылья свободы"}]},{"tag":"Old Guard","title":"Опытные артиллеристы","tiers":[{"at":2,"effect":"Когда соединение с этим тэгом атакует орудием без правил \"Ракета\", \"Авиация\" или \"TMLS\", вы можете перебросить 1 на броске атаки"},{"at":4,"effect":"Когда соединение вашего флота атакует орудием без правил \"Ракета\", \"Авиация\" или \"TMLS\", вы можете перебросить 1 на броске атаки"}]},{"tag":"Atlantic Fleet Command","title":"Огненный дождь","tiers":[{"at":2,"effect":"Используя \"Крылья свободы\" для атаки орудием с правилом \"Ракета\", вы увеличиваете дальность атаки на 2"},{"at":4,"effect":"Используя \"Крылья свободы\" для атаки орудием с правилом \"Ракета\", вы увеличиваете дальность атаки на 4, а суммарный Залп на 1"},{"at":6,"effect":"Используя \"Крылья свободы\" для атаки орудием с правилом \"Ракета\", вы увеличиваете дальность атаки на 6, а суммарный Залп на 2"}]},{"tag":"Pacific Fleet Command","title":"Ангелы смерти","tiers":[{"at":2,"effect":"В начале игры вы получаете жетон \"Ангелов смерти\" и можете положить его на любое соединение с орудием \"Эскадрилия Молний\". Заявляя атаку \"Эскадрилией Молний\" данного соединения, вы можете потратить жетон \"Ангелов смерти\" чтобы заменить характеристики атаки на характеристики орудия \"Ангелы смерти\"\nВместо жетона \"Ангелов смерти\" вы можете положить макркер Эскадрильи \"Ангелов смерти\" с Залпом=4 на любое соединение с этим тэгом."},{"at":4,"effect":"В начале игры вы получаете два жетона \"Ангелов смерти\" и можете распределить их по любым соединениям с орудием \"Эскадрилия Молний\". Заявляя атаку \"Эскадрилией Молний\" одного из данных соединений, вы можете потратить жетон \"Ангелов смерти\" чтобы заменить характеристики атаки на характеристики орудия \"Ангелы смерти\".\nВместо жетона \"Ангелов смерти\" вы можете положить макркер Эскадрильи \"Ангелов смерти\" с Залпом=4 на любое соединение с этим тэгом."},{"at":6,"effect":"В начале игры вы получаете три жетона \"Ангелов смерти\" и можете распределить их по любым соединениям с орудием \"Эскадрилия Молний\". Заявляя атаку \"Эскадрилией Молний\" одного из данных соединений, вы можете потратить жетон \"Ангелов смерти\" чтобы заменить характеристики атаки на характеристики орудия \"Ангелы смерти\"\nВместо жетона \"Ангелов смерти\" вы можете положить макркер Эскадрильи \"Ангелов смерти\" с Залпом=4 на любое соединение с этим тэгом."}]},{"tag":"Pipeworks Research Center","title":"Секретные боеголовки","tiers":[{"at":2,"effect":"Орудия вашего флота с правилом \"TMLS\" получают правило \"Летальное\""},{"at":4,"effect":"Орудия вашего флота с правилом \"TMLS\" получают правила \"Летальное\" и +1 к суммарному Залпу"}]},{"tag":"Established and Noble Free Mason Society","title":"","tiers":[{"at":3,"effect":""},{"at":6,"effect":""}]}],"ships":[{"name":"CONSTITUTION","country":"USA","role":"Тяжелый линкор","shipType":"Колесный","size":3,"price":120,"squad":[1,1],"crew":8,"speed":4,"hull":10,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"12_8_0","range":12,"rules":""}],"abilities":[{"name":"Устройте им ад!","type":"Пассивная","trigger":"Когда данное соединение получает 5 жетонов Повреждений","effect":"Орудие \"Главный калибр\" данного соединения получает правило \"Канонада\"."}],"keywords":[],"tags":["Atlantic Fleet Command","Old Guard"]},{"name":"INDEPENDENCE","country":"USA","role":"Линкор нового типа","shipType":"Колесный","size":3,"price":175,"squad":[1,1],"crew":7,"speed":5,"hull":8,"armor":"Силовая","weapons":[{"name":"Тесла-орудия","ammo":"Энергетический","volley":"4_8_4","range":14,"rules":""},{"name":"Тактические ракеты","ammo":"Титанический","volley":"4_4_4","range":24,"rules":"TMLS"}],"abilities":[{"name":"Продвинутое управление огнем","type":"Пассивная","trigger":"Когда данное соединение обьявляет атаку","effect":"Вы можете атаковать обоими Орудиями, вместо выбора одного из них. Атаки могут быть направлены в разные цели. Отработайте атаки в любом порядке"}],"keywords":[],"tags":["Pipeworks Research Center","Secret Service"]},{"name":"ENTERPRISE","country":"USA","role":"Авианосец","shipType":"Колесный","size":3,"price":130,"squad":[1,1],"crew":7,"speed":4,"hull":8,"armor":"Силовая","weapons":[{"name":"Эскадрилья Молний","ammo":"Фугасный","volley":"10_10_10","range":12,"rules":"Авиация"}],"abilities":[{"name":"Координация эскадрилий","type":"Пассивная","trigger":"Если другое союзное соединение в 6 дюймах производит атаку \"Эскадрилией Молний\"","effect":"Вы можете приравнять суммарный залп данной атаки к суммарному залпу атаки \"Эскадрилия Молний\" данного соединения"}],"keywords":[],"tags":["Pacific Fleet Command","Skywatch"]},{"name":"YORKTOWN","country":"USA","role":"Крейсер","shipType":"Колесный","size":2,"price":40,"squad":[1,3],"crew":8,"speed":5,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Фугасный","volley":"6_6_0","range":8,"rules":""}],"abilities":[{"name":"Братские узы","type":"Пассивная","trigger":"В начале раунда","effect":"Вы можете разместить дополнительное соединение ACRON, не учитывающееся в лимите формата игры. Оно должно быть размещено в 6 от данного соединения"}],"keywords":[],"tags":["Atlantic Fleet Command","Old Guard","Skywatch"]},{"name":"WASHINGTON","country":"USA","role":"Ракетоносец","shipType":"Колесный","size":2,"price":60,"squad":[1,3],"crew":7,"speed":5,"hull":3,"armor":"Тяжелая","weapons":[{"name":"Тактические ракеты","ammo":"Титанический","volley":"2_2_2","range":24,"rules":"TMLS"}],"abilities":[{"name":"Залп за залпом","type":"Пассивная","trigger":"В фазу Резервов","effect":"Если данное соединение не активировалось в этом раунде, вместо бесплатного маневра оно может совершить атаку \"Тактическими ракетами\" по обычным правилам"}],"keywords":[],"tags":["Pacific Fleet Command","Pipeworks Research Center"]},{"name":"LEXINGTON","country":"USA","role":"Крейсер огневой поддержки","shipType":"Колесный","size":2,"price":60,"squad":[1,3],"crew":7,"speed":5,"hull":4,"armor":"Тяжелая","weapons":[{"name":"РСЗО \"Клык\"","ammo":"Бронебойный","volley":"6_6_0","range":10,"rules":"Ракета"}],"abilities":[{"name":"Сквозь ад и обратно","type":"Пассивная","trigger":"Нет","effect":"Данное соединение игнорирует эффекты элементов ландшафта"}],"keywords":[],"tags":["Atlantic Fleet Command","Mavericks"]},{"name":"FARAGUT","country":"USA","role":"Фрегат","shipType":"Колесный","size":1,"price":20,"squad":[3,6],"crew":7,"speed":6,"hull":2,"armor":"Легкая","weapons":[{"name":"Корабельная винтовка","ammo":"Бронебойный","volley":"2_2_0","range":4,"rules":""}],"abilities":[{"name":"Обмен данными","type":"Пассивная","trigger":"Нет","effect":"Соединения ACRON в 8 дюймах от данного соединения увеличивают радиус своей способности \"Наводчик\" до 8"}],"keywords":[],"tags":["Old Guard","Skywatch"]},{"name":"BOSTON","country":"USA","role":"Фрегат огневой поддержки","shipType":"Колесный","size":1,"price":30,"squad":[3,6],"crew":7,"speed":6,"hull":2,"armor":"Легкая","weapons":[{"name":"РСЗО \"Коготь\"","ammo":"Фугасный","volley":"3_3_0","range":6,"rules":"Ракета"}],"abilities":[{"name":"Наконечник копья","type":"Пассивная","trigger":"Когда данное соединение атакует соединение противника","effect":"По завершению атаки положите на целевое соединение состояние \"Крылья свободы\""}],"keywords":[],"tags":["Pacific Fleet Command","Mavericks"]},{"name":"VALIANT","country":"USA","role":"Фрегат разведки","shipType":"Колесный","size":1,"price":30,"squad":[2,4],"crew":8,"speed":7,"hull":3,"armor":"Легкая","weapons":[{"name":"Автопушка","ammo":"Фугасный","volley":"1_3_1","range":4,"rules":""}],"abilities":[{"name":"Отслеживание целей","type":"Пассивное","trigger":"На соединении противника в 6 дюймах от данного соединения используется отрицательное состояние","effect":"Не снимайте состояние после использования"}],"keywords":[],"tags":["Secret Service","Mavericks"]}]},{"id":"ill","name":"Иллюминаты","color":"#8f5fc7","wip":false,"flagshipAbility":{"name":"Цитадель Архонта","type":"Пассивная","trigger":"Нет","effect":"Данное соединение получает +2 к Корпусу"},"synergies":[{"tag":"Synedrion","title":"Мудрость Афины","tiers":[{"at":2,"effect":"Соединения с данным тэгом считаются имеющими все тэги для активаций эффектов синергий (но не для подсчета активных эффектов)"}]},{"tag":"Hetaireia Therapeion","title":"Руки Гефеста","tiers":[{"at":2,"effect":"Когда соединение с данным тэгом становится целью действия \"Дефрагментация\", оно так же может убрать любое отрицательное состояние кроме Паники."},{"at":4,"effect":"Когда соединение с данным тэгом становится целью действия \"Дефрагментация\", оно получает +1 к эффекту, а так же может убрать любое отрицательное состояние кроме Паники."}]},{"tag":"Hetaireia Metabaseos","title":"Скорость Гермеса","tiers":[{"at":3,"effect":"Когда соединение с данным тэгом использует действие \"Телепортация\", дистанция перемещения увеличивается на 3 дюйма"},{"at":6,"effect":"Когда соединение с данным тэгом использует действие \"Телепортация\", дистанция перемещения увеличивается на 6 дюймов"}]},{"tag":"Hetaireia Pyros","title":"Стрелы Апполона","tiers":[{"at":2,"effect":"Когда соединение с данным тэгом использует \"Калибровку\", усиленная атака получает +2 к Дальности и +1 к суммарному Залпу"},{"at":4,"effect":"Когда соединение с данным тэгом использует \"Калибровку\", усиленная атака получает +4 к Дальности и +2 к суммарному Залпу"},{"at":6,"effect":"Когда соединение с данным тэгом использует \"Калибровку\", усиленная атака получает +6 к Дальности и +3 к суммарному Залпу"}]},{"tag":"Hetaireia Phylaktes","title":"Тайны Гекаты","tiers":[{"at":2,"effect":"Флагман вашего флота начинает игру с дополнительным жетоном Гносиса"},{"at":4,"effect":"Флагман вашего флота начинает игру с дополнительным жетоном Гносиса. Так же флагман вашего флота получает 2 жетона Гносиса в начале раунда вместо 1"}]},{"tag":"Hetaireia Kybeneseos","title":"Щупальца Сциллы","tiers":[{"at":2,"effect":"Когда соединение с данным тэгом использует действие \"Дефрагментация\", оно может выбрать целью действия соединение Автоматонов в 6 дюймах на любых высотах. В таком случае данное действие может восстанавливать уничтоженные корабли в целевом соединении."},{"at":4,"effect":"Когда соединение с данным тэгом использует действие \"Дефрагментация\", оно может выбрать целью действия соединение Автоматонов в 6 дюймах на любых высотах. В таком случае данное действие получает +1 к эффекту и может восстанавливать уничтоженные корабли в целевом соединении."},{"at":6,"effect":"Когда соединение с данным тэгом использует действие \"Дефрагментация\", оно может выбрать целью действия соединение Автоматонов в 6 дюймах на любых высотах. В таком случае данное действие получает +3 к эффекту и может восстанавливать уничтоженные корабли в целевом соединении."}]},{"tag":"Hetaireia Rhaphes","title":"Когти Талоса","tiers":[{"at":3,"effect":"Вы получаете дополнительную Ударную группу, которую должны разместить на соединении с этим тэгом. Когда вы используете жетон Ударной группы, после завершения Абордажа, вы можете потратить 2 жетона Гносиса на любом из ваших соединений. В этом случае, разместите жетон Ударной группы на нем или на соединении Автоматонов в 6."},{"at":6,"effect":"Вы получаете 2 дополнительных Ударных группы, которые должны разместить на соединениях с этим тэгом. Когда вы используете жетон Ударной группы, после завершения Абордажа, вы можете потратить жетон Гносиса на любом из ваших соединений. В этом случае, разместите жетон Ударной группы на нем или на соединении Автоматонов в 6."}]},{"tag":"Hetaireia Okeanos","title":"Удача Посейдона","tiers":[{"at":3,"effect":"Соединения вашего флота получают +1 к Скорости. Флагман вашего флота игнорирует все негативные эффекты ландшафта."}]}],"ships":[{"name":"ARCHIMEDES","country":"Иллюминаты","role":"Священный реликварий","shipType":"Классический","size":4,"price":200,"squad":[1,1],"crew":7,"speed":3,"hull":12,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Дезинтегрирующий","volley":"10_10_10","range":8,"rules":""}],"abilities":[{"name":"Великий Хроно-Агитатор","type":"Гностическое действие (1/3)","trigger":"нет","effect":"Вы можете использовать данную способность за (1) чтобы положить на одно соединение противника в 6 состояние \"Помеха\" или состояние \"Замедление\".\nВы так же можете использовать жанную способность за (3). В таком случае, каждое соединение противника в 6 получает состояние \"Помеха\" и состояние \"Замедление\", а данное соединение получает состояние \"Паника\""}],"keywords":[],"tags":["Synedrion","Hetaireia Phylaktes"]},{"name":"HYPATIA","country":"Иллюминаты","role":"Маршрутизатор","shipType":"Классический","size":3,"price":150,"squad":[1,1],"crew":7,"speed":3,"hull":10,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Дезинтегрирующий","volley":"10_7_0","range":8,"rules":""}],"abilities":[{"name":"Центр обработки данных","type":"Пассивная","trigger":"Пока на данном соединении нет состояния Паника","effect":"Данное соединение может получать и передавать жетоны Гносиса на неограниченном расстоянии.\nВ начале своей активации данное соединение может забрать любое кол-во жетонов Гносиса с союзных соединений, а затем передать любое кол-во жетонов Гносиса союзным соединениям.\nМаксимальное кол-во жетонов Гносиса на данном соединении увеличено до 4"}],"keywords":[],"tags":["Synedrion","Hetaireia Kybeneseos"]},{"name":"DESCARTES","country":"Иллюминаты","role":"Китоносец","shipType":"Классический","size":3,"price":175,"squad":[1,1],"crew":7,"speed":3,"hull":10,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Дезинтегрирующий","volley":"10_7_0","range":8,"rules":""},{"name":"Стая Фиситеров","ammo":"Титанический","volley":"4_4_4","range":6,"rules":"Кит-убийца"}],"abilities":[{"name":"Сонар-Конвергатор","type":"Гностическое действие","trigger":"Когда Стая Фиситеров данного соединения атакует цель","effect":"После отработки атаки разместите жетон Эскадрильи стаи Фиситеров на данном соединении. Вы можете использовать это действие вне активации данного соединения."}],"keywords":[],"tags":["Synedrion","Hetaireia Rhaphes"]},{"name":"CHIONE","country":"Иллюминаты","role":"Исследователь глубин","shipType":"Подводный","size":3,"price":150,"squad":[1,1],"crew":7,"speed":4,"hull":8,"armor":"Силовая","weapons":[{"name":"Торпедная батарея","ammo":"Дезинтегрирующий","volley":"8_0_0","range":6,"rules":"Торпеда"}],"abilities":[{"name":"Сверхглубокое погружение","type":"Пассивная","trigger":"В фазу расстановки","effect":"Вы можете разместить данное соединение в любой точке стола, далее одного дюйма от соединений противника. В этом случае оно начинает игру Погруженным"},{"name":"Лодка-носитель","type":"Пассивная","trigger":"В начале игры/ В начале активации данного соединения","effect":"В начале игры вы можете выбрать одно соединение DIOGENES, PRAXILLA или EURIPIDES из 4 моделей. Не размещайте его на столе как обычно, а отложите в сторону. В начале активации данного соединения вы можете разместить отложенное соединение в контакте с данным соединением. Новое соединение может быть размещено в Погруженном состоянии."}],"keywords":[],"tags":["Synedrion","Hetaireia Okeanos"]},{"name":"XENOPHON","country":"Иллюминаты","role":"Гнев Апполона","shipType":"Классический","size":3,"price":185,"squad":[1,1],"crew":8,"speed":4,"hull":8,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Дезинтегрирующий","volley":"6_10_3","range":12,"rules":""}],"abilities":[{"name":"Апофеоз","type":"Гностическое действие (3)","trigger":"Нет","effect":"Эффект данного действия аналогичен действию \"Калибровка\". Кроме того, орудия данного соединения получают правило \"Канонада\" до конца хода"},{"name":"Уроки боли","type":"Пассивная","trigger":"Когда вражеское соединение в 6 от данного соединения уничтожено","effect":"Данное соединение получает жетон Гносиса"}],"keywords":[],"tags":["Synedrion","Hetaireia Pyros"]},{"name":"ICARUS","country":"Иллюминаты","role":"Плавучая фабрика","shipType":"Классический","size":4,"price":170,"squad":[1,1],"crew":7,"speed":3,"hull":10,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Дезинтегрирующий","volley":"4_4_4","range":6,"rules":""},{"name":"Эскадрилья Кос","ammo":"Дезинтегрирующий","volley":"8_8_8","range":8,"rules":""}],"abilities":[{"name":"Безлимитное снабжение","type":"Пассивная","trigger":"Нет","effect":"Пока на данном соединении нет состояния Паника, все Дефрагментации заявленные в 6 от него получают +1 к своему эффекту"}],"keywords":[],"tags":["Synedrion","Hetaireia Therapeion"]},{"name":"LOVELACE","country":"Иллюминаты","role":"Ударный крейсер","shipType":"Классический","size":2,"price":70,"squad":[1,3],"crew":6,"speed":4,"hull":5,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Дезинтегрирующий","volley":"3_5_3","range":6,"rules":""}],"abilities":[{"name":"Вихревая воронка телепортации","type":"Пассивная","trigger":"Когда данное соединение выполняет действие \"Телепортация\"","effect":"После завершения телепортации каждое соединение противника в 6 от данного соединения получает состояние \"Уязвимость\""}],"keywords":[],"tags":["Hetaireia Metabaseos","Hetaireia Okeanos"]},{"name":"ANTARCTICA","country":"Иллюминаты","role":"Тяжелый крейсер","shipType":"Классический","size":2,"price":85,"squad":[1,3],"crew":6,"speed":4,"hull":6,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Дезинтегрирующий","volley":"4_6_3","range":6,"rules":""}],"abilities":[{"name":"Резонаторы силовых полей","type":"Пассивная","trigger":"Когда данное соединение выполняет действие \"Калибровка\"","effect":"Смените тип брони данного соединения на \"Композитный\" до начала его следующей активации"}],"keywords":[],"tags":["Hetaireia Pyros","Hetaireia Okeanos"]},{"name":"COPERNICUS","country":"Иллюминаты","role":"Крейсер управления","shipType":"Классический","size":2,"price":70,"squad":[1,3],"crew":6,"speed":4,"hull":6,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Дезинтегрирующий","volley":"4_4_0","range":6,"rules":""}],"abilities":[{"name":"Перехват прямого управления","type":"Гностическое действие (1/2)","trigger":"В процессе активации данного соединения","effect":"Соединение автоматонов в 6 может выполнить действие движение за (1) или стандартное действие за (2). Данное действие может применяться к соединениям на любых высотах."}],"keywords":[],"tags":["Hetaireia Therapeion","Hetaireia Kybeneseos"]},{"name":"QUINTILIAN","country":"Иллюминаты","role":"Ракетный крейсер","shipType":"","size":null,"price":75,"squad":[1,3],"crew":6,"speed":4,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Ракеты-автоматоны","ammo":"Дезинтегрирующий","volley":"2_2_2","range":18,"rules":"Ракета, Самонаведение"}],"abilities":[{"name":"Арсенал Апполона","type":"Гностическое действие (1)","trigger":"Когда данное соединение обьявляет атаку","effect":"Вы можете выбрать одно из следующих усилений для данной атаки:\n1. Атака может выбирать целью Погруженные и Барражирующие соединения\n2. Атака получает правило Бронелом\n3. Атака получает правило Критическое (Замедление, Помеха)"}],"keywords":[],"tags":["Hetaireia Pyros","Hetaireia Kybeneseos"]},{"name":"CLAUDIUS","country":"Иллюминаты","role":"Крейсер-вычислитель","shipType":"Классический","size":2,"price":60,"squad":[1,2],"crew":6,"speed":4,"hull":5,"armor":"Тяжелая","weapons":[],"abilities":[{"name":"Моделирование реальности","type":"Стандартное действие","trigger":"Нет","effect":"Выберете союзное соединение в 18. Оно получает жетон состояния из списка за каждый корабль в данном соединении. Список доступных состояний: Ускорение, Укрытие, Прицеливание, Воодушевление. Кроме того, данное соединение может передать целевому любое количество жетонов Гносиса. По завершении хода данного соединения не передавайте ход противнику; вместо этого начните новый ход."},{"name":"Якорь телепортации","type":"Пассивная","trigger":"Когда союзное соединение использует действие \"Телепортация\"","effect":"Вместо стандартного эффекта телепортирующееся соединение может разместить модель в контакте с данным соединением, и остальные модели в когеренции с первой"}],"keywords":[],"tags":["Synedrion"]},{"name":"STILETTO","country":"Иллюминаты","role":"Штурмовой крейсер","shipType":"Классический","size":2,"price":55,"squad":[1,3],"crew":7,"speed":4,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Дезинтегрирующий","volley":"4_4_0","range":4,"rules":""}],"abilities":[{"name":"Штурмовые протоколы","type":"Пассивная","trigger":"После завершения действия \"Телепортация\"","effect":"Вы можете совершить одно действие \"Абордаж\" свободным действием"}],"keywords":[],"tags":["Hetaireia Metabaseos","Hetaireia Rhaphes"]},{"name":"MERIAN","country":"Иллюминаты","role":"Автоматон-фрегат","shipType":"Классический","size":1,"price":25,"squad":[3,6],"crew":5,"speed":5,"hull":3,"armor":"Легкая","weapons":[{"name":"Гравитационная плеть","ammo":"Фугасный","volley":"2_2_0","range":4,"rules":""}],"abilities":[{"name":"Гравитационная сеть","type":"Стандартное действие","trigger":"Нет","effect":"Выберите соединение противника в 8 дюймах от данного соединения. Передвиньте его на 4 дюйма к данному соединению; затем положитена него жетон Замедления"}],"keywords":["Автоматон"],"tags":["Hetaireia Pyros","Hetaireia Phylaktes","Hetaireia Okeanos"]},{"name":"GERMAIN","country":"Иллюминаты","role":"Артиллерийский автоматон","shipType":"Классический","size":1,"price":25,"squad":[3,6],"crew":5,"speed":5,"hull":3,"armor":"Легкая","weapons":[{"name":"Главный калибр","ammo":"Дезинтегрирующий","volley":"2_2_0","range":6,"rules":""}],"abilities":[{"name":"Перегрузка реакторов","type":"Пассивная","trigger":"Когда данное соединение заявляет атаку","effect":"Вы можете использовать это правило. В таком случае, атака получает все бонусы \"Калибровки\". По завершению данной атаки уничтожьте один из кораблей в данном соединении."}],"keywords":["Автоматон"],"tags":["Hetaireia Pyros","Hetaireia Phylaktes","Hetaireia Metabaseos"]},{"name":"AMO","country":"Иллюминаты","role":"Автоматон-авианосец","shipType":"Классический","size":1,"price":30,"squad":[3,6],"crew":5,"speed":5,"hull":3,"armor":"Легкая","weapons":[{"name":"Эскадрилья Кос","ammo":"Дезинтегрирующий","volley":"1_1_1","range":4,"rules":"Авиация. Перехватчик"}],"abilities":[{"name":"Созданы служить","type":"Пассивная","trigger":"Когда данное соединение заявляет атаку","effect":"Если целью данной атаки является союзное соединение размера 2, то дальность данной атаки увеличивается на 4. Если целью данной атаки является союзное соединение размера 3 и более, то дальность данной атаки увеличивается на 8."}],"keywords":["Автоматон"],"tags":["Hetaireia Kybeneseos","Hetaireia Rhaphes","Hetaireia Therapeion"]},{"name":"PRAXILLA","country":"Иллюминаты","role":"Автоматон-охотник","shipType":"Подводный","size":1,"price":15,"squad":[4,10],"crew":5,"speed":6,"hull":2,"armor":"Легкая","weapons":[{"name":"Носовой бур","ammo":"Дезинтегрирующий","volley":"1_0_0","range":1,"rules":"Летальное, Самонаведение, Торпеда"}],"abilities":[{"name":"Скрытный убийца","type":"Пассивная","trigger":"В первого раунда","effect":"Данное соединение получает состояние \"Укрытие\""}],"keywords":["Автоматон"],"tags":["Hetaireia Metabaseos","Hetaireia Kybeneseos","Hetaireia Rhaphes"]},{"name":"DIOGENES","country":"Иллюминаты","role":"Автоматон-разведчик","shipType":"Подводный","size":1,"price":20,"squad":[4,10],"crew":5,"speed":6,"hull":2,"armor":"Легкая","weapons":[{"name":"Торпеды-пиявки","ammo":"Дезинтегрирующий","volley":"2_0_0","range":4,"rules":"Торпеда"}],"abilities":[{"name":"Сбор данных","type":"Пассивная","trigger":"Если атака данного соединения нанесла хотя бы 1 повреждение","effect":"Союзное соединение в 6 получает состояние Гносис"}],"keywords":["Автоматон"],"tags":["Hetaireia Metabaseos","Hetaireia Therapeion","Hetaireia Phylaktes"]},{"name":"EURIPIDES","country":"Иллюминаты","role":"Ремонтный автоматон","shipType":"Подводный","size":1,"price":15,"squad":[4,6],"crew":5,"speed":6,"hull":2,"armor":"Легкая","weapons":[{"name":"Щупальца","ammo":"Дезинтегрирующий","volley":"1_0_0","range":1,"rules":""}],"abilities":[{"name":"Полевое обслуживание","type":"Стандартное действие","trigger":"Нет","effect":"Выберите союзное соединение в 3. Уберите с него д3 жетона Повреждений"}],"keywords":["Автоматон"],"tags":["Hetaireia Phylaktes","Hetaireia Rhaphes","Hetaireia Therapeion"]}]},{"id":"rus","name":"Россия","color":"#c2953b","wip":false,"flagshipAbility":{"name":"Вспомогательный криогенератор","type":"Пассивная","trigger":"В начале игры","effect":"Добавьте дополнительный Айсберг в пул"},"synergies":[{"tag":"Балтийский флот","title":"Ледяные крылья","tiers":[{"at":2,"effect":"Замороженные соединения с этим тэгом получают +2 к Скорости"},{"at":4,"effect":"Замороженные соединения вашего флота получают +2 к Скорости"}]},{"tag":"Северный флот","title":"Ледяная броня","tiers":[{"at":3,"effect":"При атаке Замороженных соединений вашего флота, после броска Атаки заблокируйте 1 попадание без броска Защиты"},{"at":6,"effect":"При атаке Замороженных соединений вашего флота, после броска Атаки заблокируйте 2 попадания без броска Защиты"}]},{"tag":"Черноморский флот","title":"Перепад температур","tiers":[{"at":2,"effect":"В конце раунда, в начале фазы Борьбы за живучесть, выберите 1 Замороженное соединение противника. Оно получает жетон Уязвимости."},{"at":4,"effect":"В конце раунда, в начале фазы Борьбы за живучесть, выберите 2 Замороженных соединения противника. Каждое из них получает жетон Уязвимости."},{"at":6,"effect":"В конце раунда, в начале фазы Борьбы за живучесть, выберите 3 Замороженных соединения противника. Каждое из них получает жетон Уязвимости."}]},{"tag":"Красная гвардия","title":"Плавучая батарея","tiers":[{"at":2,"effect":"Замороженные соединения с этим тэгом получают +2 к дальности всех своих атак"},{"at":4,"effect":"Замороженные соединения с этим тэгом получают +4 к дальности всех своих атак"},{"at":6,"effect":"Замороженные соединения с этим тэгом получают +6 к дальности всех своих атак"}]},{"tag":"Черная сотня","title":"Народный гнев","tiers":[{"at":3,"effect":"Когда соединение с этим тэгом атакует Замороженного врага, оно может перебрасывать проваленные броски на попадание"},{"at":6,"effect":"Когда соединение вашего флота атакует Замороженного врага, оно может перебрасывать проваленные броски на попадание"}]},{"tag":"Комиссариат Опричников","title":"Обезвреживание","tiers":[{"at":3,"effect":"Замороженные соединения противника в 6 от соединений с этим тегом получают -1 на броски атаки и не могут использовать Ударные группы для абордажа"}]},{"tag":"Полярные совы","title":"Северные течения","tiers":[{"at":2,"effect":"В начале вашего первого хода вы можете передвинуть каждый из ваших Айсбергов на 6"}]},{"tag":"Императорский Зимний Арсенал","title":"Стратегические криогенераторы базы \"Красная заря\"","tiers":[{"at":2,"effect":"Добавьте 1 дополнительный Айсберг в пул."},{"at":4,"effect":"Добавьте 2 дополнительных Айсберга в пул."}]}],"ships":[{"name":"БОРОДИНО","country":"Россия","role":"Крио-линкор","shipType":"Классический","size":3,"price":130,"squad":[1,1],"crew":8,"speed":4,"hull":10,"armor":"Силовая","weapons":[{"name":"Рельсовые пушки","ammo":"Бронебойный","volley":"12_8_0","range":8,"rules":"Дробитель"}],"abilities":[{"name":"Сердце зимы","type":"Пассивная","trigger":"Нет","effect":"Соединения в 3 от данного считаются Замороженными"}],"keywords":["Криогенератор"],"tags":["Черная сотня","Красная гвардия"]},{"name":"МОСКВА","country":"Россия","role":"Линкор превосходства","shipType":"Классический","size":4,"price":190,"squad":[1,1],"crew":8,"speed":4,"hull":12,"armor":"Силовая","weapons":[{"name":"Тяжелые рельсовые пушки","ammo":"Энергетический","volley":"14_10_0","range":10,"rules":"Дробитель"}],"abilities":[{"name":"Укрепленный нос","type":"Пассивная","trigger":"Нет","effect":"Данное соединение получает +1 к броскам Защиты, если его атакуют в носовую арку"},{"name":"Рикошет","type":"Пассивная","trigger":"После завершения атаки данного соединения по Замороженной цели","effect":"Каждое из Замороженных соединений противника в 6 от цели получает жетон Повреждения"}],"keywords":[],"tags":["Черная сотня","Комиссариат Опричников"]},{"name":"МОЖАЙСКИЙ","country":"Россия","role":"Авианосец","shipType":"Классический","size":3,"price":120,"squad":[1,1],"crew":7,"speed":4,"hull":8,"armor":"Силовая","weapons":[{"name":"Эскадрилья Воронов","ammo":"Бронебойный","volley":"8_8_8","range":10,"rules":"Полярный охотник, Дробитель"}],"abilities":[{"name":"Арктический навигатор","type":"Пассивное","trigger":"Когда данное соединение активируется Замороженным","effect":"Данное соединение получает состояние \"Укрытие\""}],"keywords":[],"tags":["Полярные совы","Императорский Зимний Арсенал"]},{"name":"КУТУЗОВ","country":"Россия","role":"Основной крейсер","shipType":"Классический","size":2,"price":35,"squad":[1,3],"crew":8,"speed":5,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Рельсовые картечницы","ammo":"Фугасный","volley":"3_6_3","range":6,"rules":"Дробитель"}],"abilities":[{"name":"Костяк флота","type":"Пассивная","trigger":"Нет","effect":"На этапе составления ростера это соединение может выбрать два из указанных тэгов: Балтийский флот, Северный флот и Черноморский флот"}],"keywords":[],"tags":[],"choice":{"label":"Костяк флота — выберите два флота","options":["Балтийский флот","Северный флот","Черноморский флот"],"pick":2,"distinct":false}},{"name":"МОРОЗКО","country":"Россия","role":"Тяжелый крио-крейсер","shipType":"Классический","size":2,"price":75,"squad":[1,3],"crew":8,"speed":5,"hull":5,"armor":"Тяжелая","weapons":[{"name":"Рельсовые картечницы","ammo":"Фугасный","volley":"3_6_3","range":6,"rules":"Дробитель"}],"abilities":[{"name":"Ледяной плен","type":"Пассивная","trigger":"Когда союзное соединение в 6 атакует","effect":"Повысьте суммарный Залп данной атаки на 1 за каждый Айсберг в 3 от целевого соединения"}],"keywords":["Криогенератор"],"tags":["Северный флот","Императорский Зимний Арсенал"]},{"name":"СИНЕУС","country":"Россия","role":"Легкий крейсер","shipType":"Классический","size":2,"price":35,"squad":[1,3],"crew":7,"speed":6,"hull":3,"armor":"Тяжелая","weapons":[{"name":"Рельсовые пушки","ammo":"Бронебойный","volley":"4_4_0","range":6,"rules":"Дробитель"}],"abilities":[{"name":"Повадырь","type":"Пассивная","trigger":"Когда айсберг в 6 от данного соединения передвигается","effect":"Увеличьте дальность движения Айсберга на 3"}],"keywords":[],"tags":["Полярные совы","Черная сотня"]},{"name":"ОЛЕГ","country":"Россия","role":"Монитор","shipType":"Классический","size":2,"price":30,"squad":[1,4],"crew":9,"speed":4,"hull":3,"armor":"Тяжелая","weapons":[{"name":"Рельсовые картечницы","ammo":"Фугасный","volley":"4_4_0","range":6,"rules":"Дробитель"}],"abilities":[{"name":"Упорство","type":"Пассивная","trigger":"Когда данное соединение Заморожено","effect":"Вы можете положить на данное соединение жетон Оледенения"}],"keywords":[],"tags":["Балтийский флот","Красная гвардия"]},{"name":"РЮРИК","country":"Россия","role":"Дестроер","shipType":"Классический","size":1,"price":20,"squad":[3,6],"crew":7,"speed":6,"hull":2,"armor":"Легкая","weapons":[{"name":"Рельсовая пушка","ammo":"Бронебойный","volley":"2_2_0","range":4,"rules":"Дробитель"}],"abilities":[{"name":"Полярный патруль","type":"Пассивная","trigger":"Когда данное соединение завершает \"Маневр\"","effect":"Вы можете передвинуть 1 Айсберг в 6 от данного соединения"}],"keywords":[],"tags":["Северный флот","Комиссариат Опричников"]},{"name":"ПИРАНЬЯ","country":"Россия","role":"Ударная подлодка","shipType":"Подводный","size":1,"price":20,"squad":[3,6],"crew":7,"speed":7,"hull":2,"armor":"Легкая","weapons":[{"name":"Криоторпеды","ammo":"Энергетический","volley":"2_0_0","range":4,"rules":"Торпеда, Критическое (Оледенение)"}],"abilities":[{"name":"Холодные течения","type":"Пассивная","trigger":"Когда данное соединение Заморожено","effect":"Вы можете снять жетон Погружения с данного соединения свободным действием"}],"keywords":[],"tags":["Черноморский флот","Комиссариат Опричников"]}]},{"id":"chi","name":"Китай","color":"#b3543f","wip":false,"flagshipAbility":{"name":"Небесный Мандат","type":"Пассивная","trigger":"В начале раунда","effect":"Положите состояние Ужас на целевое соединение противника в 18"},"synergies":[{"tag":"Da Chuanwu","title":"Черное пламя","tiers":[{"at":3,"effect":"В конце раунда, в начале фазы Борьбы за живучесть, выберите соединение противника с жетоном Пожара. Оно не может проходить тест на Борьбу за живучесть"},{"at":6,"effect":"В конце раунда, в начале фазы Борьбы за живучесть, выберите три соединения противника с жетонами Пожара. Они не могут проходить тест на Борьбу за живучесть"}]},{"tag":"Shangshu Sheng","title":"Ядовитые миазмы","tiers":[{"at":2,"effect":"Соединение противника с жетоном Пожара получает штраф -1 к Экипажу"},{"at":4,"effect":"Соединение противника с жетоном Пожара получает штраф -2 к Экипажу"},{"at":6,"effect":"Соединение противника с жетоном Пожара получает штраф -3 к Экипажу"}]},{"tag":"Gonghui","title":"Отборные надсмоторщики","tiers":[{"at":2,"effect":"Соединения вашего флота с жетоном Паники получают +1 к Скорости"}]},{"tag":"Longting","title":"Око Императора","tiers":[{"at":3,"effect":"Один раз за игру, в начале раунда, каждое соединение противника получает жетон Пожара"}]},{"tag":"Junshi Fu","title":"Безжалостная стратегия","tiers":[{"at":2,"effect":"Один раз за раунд, в конце активации соединения, положите на данное соединение 4 жетона Повреждения. Затем оно совершает дополнительную Атаку одним из своих орудий."},{"at":4,"effect":"Один раз за раунд, в конце активации соединения, положите на данное соединение 3 жетона Повреждения. Затем оно совершает дополнительную Атаку одним из своих орудий."},{"at":6,"effect":"Один раз за раунд, в конце активации соединения, положите на данное соединение 2 жетона Повреждения. Затем оно совершает дополнительную Атаку одним из своих орудий."}]},{"tag":"Yingwei","title":"Внедренные агенты","tiers":[{"at":2,"effect":"В начале раунда, выберите соединение противника. Оно получает жетон Пожара. Если на целевом соединении уже есть жетон Пожара, вместо обычного эффекта вы можете убрать с данного соединения жетон Ударной группы"},{"at":4,"effect":"В начале раунда, выберите два соединения противника. Каждое из них получает жетон Пожара. Если на целевом соединении уже есть жетон Пожара, вместо обычного эффекта вы можете убрать с данного соединения жетон Ударной группы"}]},{"tag":"Haidao","title":"Налет за рабами","tiers":[{"at":2,"effect":"Вы получаете дополнительную Ударную группу, которую должны разместить на соединении с этим тэгом. Соединения с этим тегом не получают штраф за наличие жетона Паники при броске на Абордаж"},{"at":4,"effect":"Вы получаете 2 дополнительных Ударных группы, которые должны разместить на соединениях с этим тэгом. Соединения с этим тегом не получают штраф за наличие жетона Паники при броске на Абордаж. Если абордаж соединения с данным тэгом нанес цели Повреждение, вы можете убрать с данного соединения жетон Паники и ж3 жетона Повреждений"}]},{"tag":"Sheng Jiandui","title":"Великий флот","tiers":[{"at":3,"effect":"Один раз за игру, в начале раунда выберите одно из своих уничтоженных соединений размера 1 или 2. Разместите его в своей зоне расстановки. Затем положите на него 6 жетонов повреждений"},{"at":6,"effect":"Один раз за игру, в начале раунда выберите одно из своих уничтоженных соединений размера 1 или 2. Разместите его в своей зоне расстановки. Затем положите на него 3 жетона повреждений"}]}],"ships":[{"name":"NING JING","country":"Китай","role":"Линкор","shipType":"Колесный","size":3,"price":120,"squad":[1,1],"crew":8,"speed":4,"hull":8,"armor":"Силовая","weapons":[{"name":"Вопящие пушки","ammo":"Бронебойный","volley":"12_8_4","range":12,"rules":"Летальное"},{"name":"Великий Хуйлонг","ammo":"Титанический","volley":"2_0_0","range":3,"rules":"Дыхание дракона"}],"abilities":[{"name":"Минный заградитель","type":"Пассивная","trigger":"В конце любого действия","effect":"Один раз за активацию вы можете разместить Цзинси в задней арке данного соединения, не далее чем в 4 от данного соединения и не ближе 1 от соединений противника"}],"keywords":["Баочжу"],"tags":["Sheng Jiandui","Junshi Fu"]},{"name":"YANGTZE","country":"Китай","role":"Линкор огневой поддержки","shipType":"Колесный","size":3,"price":130,"squad":[1,1],"crew":8,"speed":4,"hull":8,"armor":"Силовая","weapons":[{"name":"Гаубица Эрланг Шень","ammo":"Энергетический","volley":"10_0_0","range":18,"rules":"Летальное, Выбор цели"},{"name":"Великий Хуйлонг","ammo":"Титанический","volley":"2_0_0","range":3,"rules":"Дыхание дракона"}],"abilities":[{"name":"Посеять хаос","type":"Пассивная","trigger":"Когда данное соединение заявляет цель атаки","effect":"Если в 6 от целевого соединения есть союзное соединение, вы можете положить на него жетон Паники. В этом случае положите на целевое соединение жетон Пожара"}],"keywords":[],"tags":["Longting","Gonghui"]},{"name":"NARAKA","country":"Китай","role":"Линкор-поджигатель","shipType":"Колесный","size":3,"price":100,"squad":[1,1],"crew":8,"speed":4,"hull":10,"armor":"Силовая","weapons":[{"name":"Батарея Хуйлонгов","ammo":"Титанический","volley":"3_0_0","range":3,"rules":"Дыхание дракона"}],"abilities":[{"name":"Извергатель погибели","type":"Пассивная","trigger":"Когда данное соединение заявляет атаку или использует Баочжу","effect":"Каждое соединение противника в 6 от целевого соединения так же становиться целью данной атаки или эффекта Баочжу"}],"keywords":["Баочжу"],"tags":["Da Chuanwu","Yingwei"]},{"name":"JIAN","country":"Китай","role":"Крейсер","shipType":"Колесный","size":2,"price":35,"squad":[1,3],"crew":7,"speed":5,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Вопящие картечницы","ammo":"Фугасный","volley":"2_4_2","range":8,"rules":"Летальное"},{"name":"Хуйлонг","ammo":"Титанический","volley":"1_0_0","range":2,"rules":"Дыхание дракона"}],"abilities":[{"name":"Взрывоопасные останки","type":"Пассивная","trigger":"Когда корабль в данном соединении уничтожен","effect":"Перед тем как убрать корабль, разместите Цзинси в контакте с ним"}],"keywords":[],"tags":["Sheng Jiandui","Da Chuanwu","Junshi Fu"]},{"name":"MERU","country":"Китай","role":"Ракетный крейсер","shipType":"Колесный","size":2,"price":55,"squad":[1,3],"crew":7,"speed":5,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Алхимические ракеты","ammo":"Алхимический","volley":"2_4_2","range":10,"rules":"Ракета"},{"name":"Хуйлонг","ammo":"Титанический","volley":"1_0_0","range":2,"rules":"Дыхание дракона"}],"abilities":[{"name":"Магнитные детонаторы","type":"Стандартное действие","trigger":"Нет","effect":"За каждый корабль в данном соединении положите Цзинси в 10 от данного соединения, но не ближе 1 от соединений противника"}],"keywords":[],"tags":["Da Chuanwu","Shangshu Sheng"]},{"name":"TIANLONG","country":"Китай","role":"Драконий колосс","shipType":"Летающий колосс","size":2,"price":65,"squad":[1,3],"crew":8,"speed":6,"hull":5,"armor":"Тяжелая","weapons":[{"name":"Алхимические ракеты","ammo":"Алхимический","volley":"2_2_2","range":10,"rules":"Ракета"},{"name":"Драконий Хуйлонг","ammo":"Титанический","volley":"2_0_0","range":6,"rules":"Дыхание дракона"}],"abilities":[{"name":"Ужасающее присуствие","type":"Пассивная","trigger":"Нет","effect":"Соединения противника в 6 получают -1 к броскам Экипажа"}],"keywords":["Баочжу"],"tags":["Longting","Yingwei"]},{"name":"DAO","country":"Китай","role":"Легкий крейсер","shipType":"Колесный","size":2,"price":30,"squad":[1,3],"crew":7,"speed":6,"hull":3,"armor":"Тяжелая","weapons":[{"name":"Вопящие пушки","ammo":"Бронебойный","volley":"3_3_0","range":8,"rules":"Летальное"},{"name":"Хуйлонг","ammo":"Титанический","volley":"1_0_0","range":2,"rules":"Дыхание дракона"}],"abilities":[{"name":"Отчаянное сопротивление","type":"Пассивная","trigger":"Если данное соединение имеет жетон Паники","effect":"Данное соединение перебрасывает 1 на бросках Атаки"}],"keywords":["Баочжу"],"tags":["Gonghui","Junshi Fu"]},{"name":"SHANGHAI","country":"Китай","role":"Фрегат","shipType":"Колесный","size":1,"price":20,"squad":[3,6],"crew":7,"speed":7,"hull":2,"armor":"Легкая","weapons":[{"name":"Вопящие картечницы","ammo":"Фугасный","volley":"2_2_0","range":4,"rules":"Летальное"}],"abilities":[{"name":"Брандер","type":"Пассивная","trigger":"Когда корабль в данном соединении уничтожен","effect":"Положите жетон Пожара на соединение противника в 6, либо положите жетон Ужаса на соединение противника в 6 имеющее жетон Пожара"}],"keywords":[],"tags":["Shangshu Sheng","Sheng Jiandui"]},{"name":"GONG","country":"Китай","role":"Ракетный фрегат","shipType":"Колесный","size":1,"price":30,"squad":[3,6],"crew":7,"speed":6,"hull":3,"armor":"Легкая","weapons":[{"name":"Алхимические ракеты","ammo":"Алхимический","volley":"2_2_0","range":6,"rules":"Ракета"}],"abilities":[{"name":"Цепная детонация","type":"Пассивная","trigger":"Когда данное соединение завершает атаку","effect":"Выберите любое количество Цзинси в 6 от целевого соединения. Вы можете убрать их со стола. Соединения противника в 3 от убранных Цзинси получают жетон Пожара"}],"keywords":[],"tags":["Gonghui","Yingwei"]}]},{"id":"sul","name":"Султанат","color":"#35a08c","wip":false,"flagshipAbility":{"name":"Приказ Султана","type":"Пассивная","trigger":"В начале раунда","effect":"Положите жетон Наживы на любое соединение противника"},"synergies":[{"tag":"Hafiyeler","title":"Тактика отвлечения","tiers":[{"at":2,"effect":"В начале игры добавьте в пул дополнительный Мираж"},{"at":4,"effect":"В начале игры добавьте в пул 2 дополнительных Миража"},{"at":6,"effect":"В начале игры добавьте в пул 3 дополнительных Миража"}]},{"tag":"Beyler","title":"Личная вендетта","tiers":[{"at":2,"effect":"Лимит состояния \"Нажива\" на соединениях противника повышен до 2"}]},{"tag":"Basıbozuklar","title":"Иррегулярные силы","tiers":[{"at":3,"effect":"Когда соединение с этим тэгом наносит повреждение противнику, если лимит Эскортов данного соединения не превышен, присоедините к нему Эскорт"},{"at":6,"effect":"Когда соединение вашего флота наносит повреждение противнику, если лимит Эскортов данного соединения не превышен, присоедините к нему Эскорт"}]},{"tag":"Egyptian","title":"Метка Анубиса","tiers":[{"at":2,"effect":"Атакуя в фазу резезервов цель с состоянием \"Нажива\" соединения с данным тэгом получают +2 к Дальности"},{"at":4,"effect":"Атакуя в фазу резезервов цель с состоянием \"Нажива\" соединения с данным тэгом получают +4 к Дальности"},{"at":6,"effect":"Атакуя в фазу резезервов цель с состоянием \"Нажива\" соединения с данным тэгом получают +6 к Дальности"}]},{"tag":"Berber","title":"Магрибские налетчики","tiers":[{"at":2,"effect":"В фазу резервов, вместо совершения Маневра, соединение с данным тэгом может совершить Полный вперед"},{"at":4,"effect":"В фазу резервов, вместо совершения Маневра, соединение вашего флота может совершить Полный вперед"}]},{"tag":"Osmanlilar","title":"Имперские артиллеристы","tiers":[{"at":3,"effect":"Атакуя в фазу резезервов цель с состоянием \"Нажива\" соединения вашего флота могут перебросить 1 на броске Атаки"},{"at":6,"effect":"Атакуя в фазу резезервов цель с состоянием \"Нажива\" соединения вашего флота могут перебросить промахи на броске Атаки"}]},{"tag":"Bezirganlar","title":"Бездонная казна","tiers":[{"at":3,"effect":"В начале раунда положите состояние \"Нажива\" на любое соединение противника"}]},{"tag":"Tarikat","title":"Разрубатели Завесы","tiers":[{"at":2,"effect":"Один раз за раунд, в любой момент своего хода вы можете обьявить один из своих Миражей Порталом до конца данного хода. После этого, уничтожьте данный Мираж."},{"at":4,"effect":"Один раз за раунд, в любой момент своего хода вы можете обьявить один из своих Миражей Порталом до конца данного хода."}]}],"ships":[{"name":"ANATOLIA","country":"Султанат","role":"Линкор","shipType":"Классический","size":3,"price":110,"squad":[1,1],"crew":8,"speed":4,"hull":8,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"10_12_4","range":12,"rules":""}],"abilities":[{"name":"Меч Султана","type":"Пассивная","trigger":"Когда данное соединение наносит Повреждение соединению противника","effect":"Положите на целевое соединение состояние Нажива"}],"keywords":[],"tags":["Osmanlilar","Bezirganlar"]},{"name":"HURREM","country":"Султанат","role":"Линейный крейсер","shipType":"Классический","size":3,"price":100,"squad":[1,1],"crew":8,"speed":5,"hull":6,"armor":"Силовая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"12_8_0","range":8,"rules":""}],"abilities":[{"name":"Портальный охотник","type":"Пассивная","trigger":"Когда данное соединение испльзует Портал","effect":"Данное соединение получает жетон Укрытия"}],"keywords":["Генератор порталов"],"tags":["Basıbozuklar","Hafiyeler"]},{"name":"SULEIMAN","country":"Султанат","role":"Тяжелый авианосец","shipType":"Классический","size":3,"price":160,"squad":[1,1],"crew":8,"speed":4,"hull":8,"armor":"Силовая","weapons":[{"name":"Эскадрилья Сабих","ammo":"Фугасный","volley":"8_8_8","range":8,"rules":"Авиация, Критическое (Помеха)"}],"abilities":[{"name":"Двойная палуба","type":"Пассивная","trigger":"Когда данное соединение заявляет атаку","effect":"Вместо одной атаки с Залпом 8 вы можете произвести две атаки с Залпом 4. Отработайте атаки в любом порядке."}],"keywords":[],"tags":["Hafiyeler","Beyler"]},{"name":"ISKANDAR","country":"Султанат","role":"Крейсер","shipType":"Классический","size":2,"price":40,"squad":[1,2],"crew":8,"speed":5,"hull":4,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Фугасный","volley":"6_6_0","range":8,"rules":""}],"abilities":[{"name":"Жажда наживы","type":"Пассивная","trigger":"Нет","effect":"Один раз за игру, в начале фазы Резервов, вы можете снять жетон Активации с данного соединения"}],"keywords":["Генератор порталов"],"tags":["Osmanlilar","Berber"]},{"name":"SADRAZAM","country":"Султанат","role":"Тяжелый крейсер","shipType":"Классический","size":2,"price":50,"squad":[1,2],"crew":8,"speed":5,"hull":5,"armor":"Тяжелая","weapons":[{"name":"D-гаубицы","ammo":"Энергетический","volley":"4_4_0","range":6,"rules":"Бронелом"}],"abilities":[{"name":"Гордость Султана","type":"Пассивная","trigger":"Когда данное соединение становиться целью Атаки","effect":"Атакующее соединение получает жетон Наживы"}],"keywords":[],"tags":["Beyler","Bezirganlar"]},{"name":"IZMIR","country":"Султанат","role":"Ударный крейсер","shipType":"Классический","size":2,"price":35,"squad":[1,2],"crew":8,"speed":6,"hull":3,"armor":"Тяжелая","weapons":[{"name":"Главный калибр","ammo":"Фугасный","volley":"4_4_0","range":8,"rules":""}],"abilities":[{"name":"Живой щит","type":"Пассивная","trigger":"Когда атака противника уничтожает последний Эскорт данного соединения","effect":"Данная атака не наносит Повреждения кораблям данного соединения"}],"keywords":[],"tags":["Tarikat","Basıbozuklar"]},{"name":"TEMIR","country":"Султанат","role":"Фрегат","shipType":"Классический","size":1,"price":20,"squad":[2,4],"crew":7,"speed":7,"hull":2,"armor":"Легкая","weapons":[{"name":"Главный калибр","ammo":"Фугасный","volley":"2_2_0","range":4,"rules":""}],"abilities":[{"name":"Опытные налетчики","type":"Пассивная","trigger":"Нет","effect":"Данное соединение не жертвует маневром при использовании Наживы"}],"keywords":[],"tags":["Osmanlilar","Basıbozuklar"]},{"name":"CELIK","country":"Султанат","role":"Фрегат огневой поддержки","shipType":"Классический","size":1,"price":25,"squad":[2,4],"crew":8,"speed":6,"hull":2,"armor":"Легкая","weapons":[{"name":"Главный калибр","ammo":"Бронебойный","volley":"2_2_0","range":4,"rules":""}],"abilities":[{"name":"Комбинированный обстрел","type":"Пассивная","trigger":"Когда данное соединение совершает Атаку","effect":"Данная атака получает +1 к суммарному Залпу за каждый Эскорт данного соединения"}],"keywords":[],"tags":["Bezirganlar","Berber"]},{"name":"CAROLUS","country":"Султанат","role":"Дестроер","shipType":"Классический","size":1,"price":25,"squad":[2,4],"crew":9,"speed":6,"hull":2,"armor":"Легкая","weapons":[{"name":"D-кулеврины","ammo":"Энергетический","volley":"2_2_0","range":4,"rules":""}],"abilities":[{"name":"Аскетизм","type":"Пассивная","trigger":"Когда данное соединение использует состояние Нажива","effect":"Не снимайте с цели жетон Наживы"}],"keywords":["Генератор порталов"],"tags":["Tarikat","Hafiyeler"]}]}];
+
+const FORMATS = [
+  {id:"small",  label:"Малый — 600 очк · 4 приказа",       points:600,  orders:4, vp:8},
+  {id:"std",    label:"Стандартный — 1000 очк · 6 приказов", points:1000, orders:6, vp:10},
+  {id:"custom", label:"Свой формат…", points:null, orders:null, vp:null},
+];
+
+const AMMO_TABLE = {
+  cols:["Легкая","Тяжелая","Силовая","Композитная"],
+  rows:[
+    ["Фугасный","5+","3+","3+","3+"],
+    ["Бронебойный","3+","5+","3+","3+"],
+    ["Энергетический","3+","3+","5+","3+"],
+    ["Титанический","6+","6+","6+","6+"],
+    ["Дезинтегрирующий*","4+","4+","4+","4+"],
+    ["Алхимический**","3+","3+","3+","3+"],
+  ],
+  note:"Бросок защиты: за каждый куб МЕНЬШЕ целевого значения цель получает жетон Повреждения. Защита не может быть лучше 2+ и хуже 6+. *Дезинтегрирующий — боеприпас Иллюминатов. **Алхимический (Китай): если у цели есть жетон Пожара — защита ухудшается до 5+."
+};
+
+const WEAPON_RULES = {
+  "Канонада":"Каждая 6 на броске атаки генерирует два попадания вместо одного. Если цель на расстоянии половины дальности орудия и менее — дополнительные попадания генерируются уже при 5+.",
+  "Летальное":"Цель атаки получает +2 к результату теста на Панику от данной атаки. Бросьте кубик за каждую Ударную группу на целевом соединении: на 4+ она уничтожается — уберите жетон.",
+  "Бронелом":"Цель получает −1 к результатам броска защиты.",
+  "Самонаведение":"Не совершайте бросок атаки — цель получает кол-во попаданий, равное значению Залпа атаки.",
+  "Выбор цели":"Атака этим орудием не требует теста на Огневую Дисциплину для свободного выбора цели. Заявив это правило для выбора цели, игрок обязан атаковать именно этим орудием.",
+  "Массовое поражение":"Орудие наносит 1 дополнительное попадание за каждый корабль в целевом соединении.",
+  "Критическое":"Критическое (Х): если атака наносит цели хотя бы 1 повреждение — она накладывает на неё состояние Х. Например, Критическое (Уязвимость).",
+  "Торпеда":"Не может заявлять атаку по Летающим целям.",
+  "Ракета":"Не нуждается в линии видимости, чтобы заявить атаку.",
+  "Перехватчик":"Только для орудий с правилом «Авиация»: при «Прикрытии с воздуха» жетоном этой эскадрильи целевая атака получает −2 вместо −1.",
+  "Авиация":"Запуск без линии видимости; нельзя при Панике; целью может быть и союзник (прикрепите маркер Эскадрильи, не более 1). «Резервные эскадрильи»: в фазу Резервов можно атаковать этим орудием вместо бесплатного Маневра — только в дружественное соединение. «Прикрытие с воздуха»: снимите маркер — атакующая авиация получает −1 (Перехватчик: −2). «Скоординированная атака»: в свою активацию носитель снимает маркер и атакует профилем орудия от себя; целью можно выбрать и союзное соединение, переложив маркер Эскадрильи на него, а по врагу такая атака бьёт только в ближайшую цель и без Огневой Дисциплины. Попадание: цель проходит тест Экипажа — успех: 4+, провал: 3+, при Панике на цели: 2+ без теста.",
+  /* фракционные правила орудий */
+  "Вольтех":"Если атака нанесла хотя бы 1 повреждение цели без состояния «Ионизация» — положите на цель «Ионизацию».",
+  "Буревестник":"Если при броске атаки выпало 3+ шестёрок — положите «Бурю» так, чтобы накрыть как можно больше кораблей целевого соединения.",
+  "TMLS":"Тактические ракеты: атакуют только цели с состоянием «Крылья свободы» (состояние используется). Включает правило «Самонаведение».",
+  "Кит-убийца":"Действует по правилам «Авиации», но не может осуществлять «Прикрытие с воздуха» и не может быть его целью при своей атаке. Может выбирать целью Погружённые соединения; если атакует соединение с состоянием «Погружение» — Залп этой атаки удваивается.",
+  "Дробитель":"После завершения атаки орудия с этим правилом по Замороженному соединению оно получает дополнительный жетон Повреждения.",
+  "Полярный охотник":"Включает правило «Авиация». Эскадрильи орудий с этим правилом могут прикрепляться к Айсбергам как к дружественным соединениям; такие эскадрильи могут совершать атаку с айсберга в конце фазы Резервов.",
+  "Дыхание дракона":"Включает правила «Самонаведение» и «Летальное». Если у целевого соединения нет жетона Пожара — урон не наносится; вместо этого положите на него жетон Пожара.",
+};
+
+const STATES = {
+  positive:[
+    ["Укрепление","после броска защиты: перебросьте проваленные кубы защиты"],
+    ["Укрытие","после заявления атаки в это соединение: атака получает −1"],
+    ["Прицеливание","после броска атаки: перебросьте проваленные кубы атаки"],
+    ["Воодушевление","при тесте Экипажа: тест автоматически пройден"],
+    ["Ускорение","при действии движения, на выбор: +2 к Скорости в рамках этого действия или дополнительный поворот"],
+    ["Ударная группа","в свой ход: произведите Абордаж свободным действием (Экипаж считается равным 9). Если соединение стало целью Абордажа — потратьте жетон, и тот Абордаж не имеет эффекта"],
+  ],
+  negative:[
+    ["Уязвимость","после броска защиты: перебросить успешные кубы защиты"],
+    ["Помеха","после броска атаки: перебросить успешные кубы атаки"],
+    ["Метка","цель атаки без теста Огневой Дисциплины, атака +4 к дальности"],
+    ["Ужас","при тесте Экипажа: тест автоматически провален"],
+    ["Замедление","при действии движения, на выбор: −4 к Скорости в рамках этого действия или запрет на поворот"],
+  ],
+  panic:"Паника: получается при провале теста после урона (или после Повреждения от Абордажа). Если на соединение кладут положительное состояние — жетон не кладётся, вместо этого снимается Паника. Если снимают или используют отрицательное — снимается Паника вместо него. Повторная Паника = жетон Повреждения.",
+  stance:[
+    ["Погружение","Подводные соединения (и Колоссы) получают/снимают его действием движения «Корректировка глубины». Погружённое соединение не может заявлять Атаку и Абордаж и не может быть их целью; высота 0. Снять в Борьбу за живучесть нельзя; противник может потратить жетон Паники на соединении, чтобы помешать погружению."],
+    ["Барражирование","Летающие соединения получают/снимают его действием движения «Корректировка высоты». Барражирующее соединение не может заявлять Атаку и Абордаж и не может быть их целью; высота 3. Снять в Борьбу за живучесть нельзя; противник может потратить жетон Паники на соединении, чтобы помешать взлёту."],
+  ],
+};
+
+const PARAM_DEFS={
+  "Экипаж":"Стойкость экипажа. Тест Экипажа: бросьте 2д6 — если результат меньше или равен значению Экипажа, тест пройден (чем выше Экипаж, тем лучше). От Экипажа зависят Огневая Дисциплина, снятие состояний (Срочный ремонт, Борьба за живучесть), попадания Авиации и бросок на Абордаж (к д3 прибавляется Экипаж).",
+  "Скорость":"Дистанция движения в дюймах: «Маневр» — движение до Скорости вперёд с поворотом, «Полный вперед» — удвоенная Скорость строго вперёд.",
+  "Корпус":"Запас прочности: когда на соединении накапливается кол-во жетонов Повреждений, равное Корпусу его кораблей, один корабль (по выбору владельца) уничтожается и выбывает из игры.",
+  "Размер":"Влияет на блокировку линии видимости (линию блокируют корабли Размера ≥ целевого соединения). Флагманом должно быть соединение наибольшего Размера во флоте; флагманская способность доступна только соединениям Размера 3+.",
+  "Соединение":"Минимальное и максимальное число кораблей в соединении данного типа. Соединение активируется целиком; каждый корабль держится в 2\" хотя бы от двух других кораблей соединения. В соединении из двух кораблей они держатся в 2\" друг от друга; соединение из одного корабля этим ограничением не связано.",
+};
+const SHIPTYPE_DEFS={
+  "Классический":"Обычный надводный корпус — работают все базовые правила без исключений. Высота 1.",
+  "Подводный":"Доступно действие движения «Корректировка глубины»: соединение получает или снимает состояние «Погружение». В остальном следует правилам Классического.",
+  "Летающий":"Доступно действие движения «Корректировка высоты»: соединение получает или снимает состояние «Барражирование». Высота 2. Орудия с правилом «Торпеда» не могут заявлять атаку по Летающим целям.",
+  "Колесный":"Нельзя заявлять «Полный вперёд»; при «Маневре» поворот можно сделать до начала движения или после его окончания.",
+  "Колосс":"При «Маневре» может поворачиваться до и после движения. Заявляя Абордаж БЕЗ Ударной группы, наносит цели дополнительные Повреждения в количестве, равном своему Размеру. Может использовать «Корректировку глубины» и получать «Погружение», как Подводный; в Погружённом состоянии его Скорость удвоена.",
+  "Летающий колосс":"Как Летающий (доступна «Корректировка высоты», состояние «Барражирование»). Дополнительно: заявляя Абордаж БЕЗ Ударной группы, наносит цели дополнительные Повреждения в количестве, равном своему Размеру.",
+  "Скиммер":"Отличается от Классического только взаимодействием с ландшафтом (например, по «Земле» перемещается как по Открытому морю).",
+};
+
+/* стоимость апгрейдов соединения (Султанат — свои цены по правилам флота) */
+const ESCORT_COST=5, STRIKE_COST=20, STRIKE_COST_SUL=25;
+
+/* Общие правила ядра — блоки для вкладки «Общие правила» и попапов-терминов */
+const CORE_RULES=[
+  {kind:"Стандартное действие",title:"Абордаж",tx:"Целью должно быть соединение противника в радиусе 1\" (у Абордажа нет арки — в любом направлении). Инициатор и жертва бросают д3 (бросок д6: 1-2 = 1, 3-4 = 2, 5-6 = 3) и прибавляют к результату свой Экипаж, а также +2, если на соединении противника есть жетон Паники. Проигравший получает Повреждений столько, какова разница бросков, и проходит тест на Панику.\nКолоссы и Летающие колоссы, абордируя без Ударной группы, наносят дополнительные Повреждения в размере своего Размера."},
+  {kind:"Общее правило",title:"Ударная группа",tx:`Положительное состояние для механик Абордажа. На этапе составления ростера можно докупить по одной на соединение за ${STRIKE_COST} очк (Султанат по правилу «Янычары» — ${STRIKE_COST_SUL} очк, зато +1 к броску на Абордаж); эффекты синергий и способности тоже кладут жетоны.\nИспользование: в свой ход потратьте жетон активного соединения, чтобы произвести Абордаж свободным действием — при этом соединение считается имеющим Экипаж 9. Если соединение с жетоном само стало целью Абордажа, потратьте жетон: тот Абордаж не имеет эффекта. На захваченной платформе жетон не остаётся и её не защищает.`},
+  {kind:"Стандартное действие",title:"Атака",wide:true,tx:"Все замеры идут от ведущего корабля соединения — его выбирает игрок; остальные корабли стреляют по его наводке и добавляют свой Залп, даже если сами вне дальности или в другой арке.\nПо умолчанию цель — ближайшее соединение противника, которое можно достать хотя бы одним орудием; чтобы выбрать другую, нужен тест на Огневую Дисциплину (тест на Экипаж).\nАрка стрельбы и курс цели считаются по большинству её кораблей; при равенстве выбирает защищающийся.\nБросок атаки: попадание с 4+, курс цели носом даёт +2, кормой +1, бортом ничего, цель в укрытии −1. Затем бросок защиты по таблице снаряд × броня, и если соединение получило хотя бы одно Повреждение и уцелело — тест на Панику."},
+  {kind:"Общее правило",title:"Правило высоты",tx:"Соединения находятся на высотах 0–3: 0 — с «Погружением», 1 — основная масса, 2 — Летающие, 3 — с «Барражированием». Соединения на разных высотах не мешают перемещению друг друга и не блокируют друг для друга линию видимости.\nВысоты, на которые действует способность, пишутся после её типа: «Пассивная (0,1)». Если высота не указана, эффект работает на высотах 1 и 2 — погружённых и барражирующих он не задевает и целью выбрать не может. На само себя соединение может воздействовать на любой высоте."},
+  {kind:"Общее правило",title:"Ландшафт",wide:true,tx:"Элементы ландшафта размещаются до игры и не двигаются, если в их профиле не сказано иначе. Разрушаемый элемент имеет Броню и Корпус, может быть целью атак, автоматически проходит тесты на Панику и не может быть взят на Абордаж; без Брони и Корпуса элемент считается неразрушаемым — его нельзя выбрать целью атаки и повредить, но собственные правила элемента всё ещё могут убрать его со стола. Непроходимый элемент имеет Размер и блокирует движение и линию видимости — обычно только на своих высотах, на остальных считается Открытым.\nУниверсальные эффекты: Укрытие (−1 на броски атаки тем, кто ведёт линию видимости через элемент) и Мина (соединение, начавшее или закончившее действие в контакте, получает д3 Повреждения, после чего элемент убирается). Если высота эффекта не указана — он действует на высотах 0,1,2,3; по умолчанию все эффекты одного элемента работают на одной высоте.\nФорма: острова принимают любую форму по договорённости, элементы миссий и правил флота — фиксированной формы, указанной в их профиле.\nОткрытое море — вся площадь стола вне элементов: неразрушаемо, проходимо на всех высотах, без эффектов; сценарии и способности могут менять его свойства. Земля — Размер 4, неразрушаемая, непроходимая (0,1); Скиммеры и непогружённые Колоссы ходят по ней как по Открытому морю (и не могут погрузиться, пока частично на ней)."},
+  {kind:"Миссия",title:"Черное золото",wide:true,tx:"Три нефтяные платформы на центральной линии: одна ровно в центре, две — в 12\" слева и справа от неё, равноудалённо от обеих зон расстановки. Платформа — непроходимый разрушаемый ландшафт Размера 5, Броня Композитная, Корпус 6, все тесты на Экипаж автоматически проваливает.\nЗахват — Абордажем и только начиная со второго раунда: бросок на Абордаж не кидается, платформа сразу переходит под контроль игрока. Ударную группу для этого абордажа использовать можно, но платформу она не защищает — эффект обычного Абордажа.\nВ конце каждого раунда игрок получает по 1 победному очку за каждую контролируемую платформу."},
+];
+
+/* Правила флота по фракциям (тексты из листов; при изменении листов поправить здесь) */
+const EXTRAS = {
+brit:{fleetRules:[
+  {kind:"Положительное состояние",title:"Щит стража",tx:"Когда соединение с данным состоянием получает урон, после броска защиты вы можете использовать данное состояние, чтобы заблокировать одно Повреждение. Базовый лимит — 2 жетона на соединении (синергии и способности его повышают)."},
+  {kind:"Особое правило флота",title:"Черта над Т",tx:"Когда соединение данного флота совершает атаку орудием без правила «Авиация» из своей бортовой арки в носовую арку противника, оно может перебросить проваленные броски Атаки."},
+  {kind:"Особое правило флота",title:"Наутилоиды",tx:"Ударные группы данного флота могут совершать Абордаж против целей с состоянием «Погружение», а соединения данного флота с состоянием «Погружение» могут заявлять Абордаж Ударной группой против соединений противника на высотах 0 и 1."},
+  {kind:"Положительное состояние",title:"Рвение",tx:"Заявляя атаку, вы можете использовать данное состояние: атака получает +4 к дальности, но обязана быть направлена в ближайшую цель.\nПри броске на Абордаж вы можете использовать это состояние, чтобы получить +2 к результату броска."},
+  {kind:"Действие движения",title:"Боевой строй",tx:"Соединение двигается вперёд на своё значение движения, а затем получает состояние «Щит стража». Соединения флота могут выполнять это действие вместо «Маневра» в фазу резервов."},
+]},
+ger:{fleetRules:[
+  {kind:"Общее правило флота",title:"Рейтары",tx:"Соединения вашего флота могут инициировать Абордаж с расстояния 4\" вместо 1\". Соединение противника, получившее Повреждение в результате Абордажа, получает жетон Ионизации."},
+  {kind:"Отрицательное состояние",title:"Ионизация",tx:"Когда носитель данного состояния получает повреждение от атаки или абордажа (если на начало действия он имел «Ионизацию»), после завершения действия вы можете использовать состояние, чтобы совершить атаку орудием «Удар молнии» в другое соединение противника. Источник «Удара молнии» — носитель «Ионизации»."},
+  {kind:"Специальный профиль оружия",title:"Удар Молнии",weapon:{ammo:"Титанический",volley:"д3",range:6,rules:"Самонаведение"}},
+  {kind:"Правило оружия",title:"Вольтех",tx:WEAPON_RULES["Вольтех"]},
+  {kind:"Правило оружия",title:"Буревестник",tx:WEAPON_RULES["Буревестник"]},
+  {kind:"Ландшафт",title:"Буря",tx:"Круг ⌀3\", Открытый. Эффекты на высотах 1,2,3: Укрытие — орудия с «Вольтех» игнорируют штраф Укрытия от этого ландшафта. В конце раунда одно вражеское соединение, частично находящееся в Буре, получает атаку «Ударом Молнии». Атаки «Ударом Молнии» по соединениям в данном ландшафте получают +1 к Залпу."},
+  {kind:"Ландшафт",title:"Буря Тысячелетия",tx:"Круг ⌀3\", Открытый. Как «Буря», но в конце раунда КАЖДОЕ вражеское соединение, частично находящееся в ней, получает атаку «Ударом Молнии». Атаки «Ударом Молнии» по соединениям в данном ландшафте получают +1 к Залпу."},
+]},
+usa:{fleetRules:[
+  {kind:"Правило армии",title:"Развертывание «Желудей»",tx:"В начале каждого раунда вы можете разместить любое кол-во соединений ACRON — в 6\" от любого союзного соединения. Общее кол-во ACRON на столе не может превышать половину Приказов формата игры (округление вниз)."},
+  {kind:"Отрицательное состояние",title:"Крылья свободы",tx:"Объявляя атаку орудием с правилом «Ракета» или «Авиация», вы можете использовать это состояние, чтобы направить атаку в носителя без теста на Огневую Дисциплину. Затем выберите одно:\n1) дальность этой атаки увеличивается на 6\";\n2) перед отработкой атаки целевое соединение получает состояние «Уязвимость»."},
+  {kind:"Правило оружия",title:"Тактические ракеты (TMLS)",tx:WEAPON_RULES["TMLS"]},
+  {kind:"Специальный профиль оружия",title:"Ангелы смерти",weapon:{ammo:"Титанический",volley:"как у заменяемого оружия",range:6,rules:"Авиация, Летальное"}},
+],
+specialShips:[{name:"ACRON",role:"Ротор-разведчик",note:"Не покупается за очки — размещается по правилу «Развертывание „Желудей“».",shipType:"Летающий",size:1,price:0,squad:[1,1],crew:5,speed:6,hull:1,armor:"Легкая",tags:[],weapons:[],keywords:[],abilities:[
+  {name:"Нонкомбатант",type:"Пассивная",trigger:"Нет",effect:"Данное соединение не может быть активировано. Оно всё ещё может совершать бесплатный манёвр в фазу Резервов, причём может поворачиваться до и после движения."},
+  {name:"Маяк Свободы",type:"Пассивная",trigger:"Нет",effect:"Атаки союзной авиации по данному соединению считаются имеющими +6 к дальности. Если в фазу Резервов на нём оказывается жетон Эскадрильи — вы можете произвести атаку этой Эскадрильей, как будто соединение было активировано."},
+  {name:"Наводчик",type:"Пассивная",trigger:"Вражеское соединение начинает или заканчивает действие в 6\"",effect:"Положите на целевое соединение состояние «Крылья свободы»."},
+]}]},
+ill:{fleetRules:[
+  {kind:"Способность",title:"Автоматон",tx:"Не могут иметь состояние Гносис и выполнять Гностические действия.\nНе могут быть активированы дальше 12\" от соединения без этого правила.\nНе могут иметь Панику и автоматически проходят все тесты на Экипаж (параметр Экипажа всё равно нужен для Абордажа).\nНе могут инициировать Абордаж без жетона Ударной группы."},
+  {kind:"Положительное состояние",title:"Гносис",tx:"Прямого эффекта нет — тратится на Гностические действия.\nВ начале раунда положите жетон Гносиса на каждое ваше соединение без Паники.\nВ начале активации соединения можно снять с него жетон, чтобы положить жетон на союзника в 12\".\nМаксимум 3 жетона на соединении."},
+  {kind:"Тип действий",title:"Гностическое действие (Х)",pattern:"[Гг]ностическ[а-яё]{0,4}\\s+действи[а-яё]{0,3}(?:\\s*\\([^)]*\\))?",tx:"Цена действия указана в скобках: столько жетонов Гносиса надо потратить; если цена не указана, действие стоит один жетон. Действие свободное — в дополнение к двум действиям активации. Можно использовать и в фазу Резервов в дополнение к бесплатному манёвру."},
+  {kind:"Гностическое действие",title:"Телепортация",tx:"Переместите соединение на 3\" в любом направлении, затем оно может выполнить Перестроение. Соединение из одного корабля перемещается на 6\" вместо трёх."},
+  {kind:"Гностическое действие",title:"Дефрагментация",tx:"Снимите с соединения д3 жетона Повреждений. Можно также снять Панику — но только если жетонов Повреждений не осталось."},
+  {kind:"Гностическое действие",title:"Калибровка",tx:"Используйте перед заявлением атаки орудием с Дезинтегрирующими боеприпасами и БЕЗ правила «Авиация»: любые типы брони защищаются от этой атаки на 5+."},
+  {kind:"Тип боеприпаса",title:"Дезинтегрирующий",tx:"Любые типы брони защищаются от орудий с этим боеприпасом на 4+."},
+  {kind:"Правило оружия",title:"Кит-убийца",tx:WEAPON_RULES["Кит-убийца"]},
+]},
+rus:{fleetRules:[
+  {kind:"Особое правило флота",title:"Холодный фронт",tx:"В начале игры соберите пул Айсбергов, доступных вашему флоту. В начале фазы расстановки разместите Айсберги в своей зоне расстановки.\nВ начале раунда вы можете передвинуть каждый из Айсбергов на 6\" в любом направлении."},
+  {kind:"Ландшафт",title:"Айсберг",tx:"Круг ⌀2\". Непроходимый Размера 4 на высотах 0,1. Разрушаемый: Корпус 5, Броня Композитная.\nЭффекты на высотах 0,1,2: соединения в радиусе 3\" от Айсберга считаются Замороженными — такие соединения получают −1 к Скорости."},
+  {kind:"Особое правило",title:"Криогенератор",tx:"Соединение с данным правилом добавляет в пул один Айсберг за каждый корабль в данном соединении."},
+  {kind:"Отрицательное состояние",title:"Оледенение",tx:"Соединение с данным состоянием считается Замороженным."},
+  {kind:"Правило оружия",title:"Дробитель",tx:WEAPON_RULES["Дробитель"]},
+  {kind:"Правило оружия",title:"Полярный охотник",tx:WEAPON_RULES["Полярный охотник"]},
+]},
+chi:{fleetRules:[
+  {kind:"Общее правило флота",title:"Взгляд Драконьего Императора",tx:"Когда соединение противника должно получить жетон Паники, оно вместо этого получает жетон Пожара."},
+  {kind:"Особое правило флота",title:"Раздать плетей",tx:"Соединение данного флота может в начале своей активации получить жетон Паники. В этом случае оно получает +2 к Скорости до конца своей активации."},
+  {kind:"Отрицательное состояние",title:"Пожар",tx:"Полностью эквивалентно состоянию Паника, за следующими исключениями:\nсоединение может иметь жетон Пожара, даже если по своим правилам не может иметь Панику;\nкогда соединение получает дублирующийся жетон Пожара, оно получает не 1 Повреждение, а 2;\nв конце раунда, после Борьбы за живучесть, каждое соединение с состоянием Пожар получает 2 Повреждения."},
+  {kind:"Тип боеприпаса",title:"Алхимический",tx:"Любая броня защищается от данного типа боеприпасов на 3+. Если у целевого соединения есть жетон Пожара — бросок защиты ухудшается до 5+."},
+  {kind:"Правило оружия",title:"Дыхание дракона",tx:WEAPON_RULES["Дыхание дракона"]},
+  {kind:"Особое правило",title:"Баочжу",tx:"Один раз за активацию, в любой момент активации вы можете выбрать соединение противника в 6\" — оно должно пройти тест на Панику."},
+  {kind:"Ландшафт",title:"Цзинси",tx:"Круг ⌀2\", Открытый. Эффекты на высотах 0,1: соединение, начинающее или заканчивающее действие в контакте с этим элементом ландшафта, получает д3 жетона Пожара. После этого элемент удаляется."},
+]},
+sul:{fleetRules:[
+  {kind:"Особое правило флота",title:"Корсары",tx:"Флот имеет 3 Приказа на малый формат и 5 Приказов на стандартный (8 — на большой).\nСоединения данного флота могут иметь до трёх Эскортов.\nКогда соединение данного флота участвует в Абордаже, вы можете уничтожить один из его Эскортов, чтобы получить +2 к броску на Абордаж."},
+  {kind:"Особое правило флота",title:"Мастера обмана",tx:"В начале игры добавьте в пул один Мираж. Другие правила и синергии могут добавлять в этот пул дополнительные Миражи. В начале раунда вы можете разместить любое кол-во Миражей в любых точках стола."},
+  {kind:"Особое правило флота",title:"Янычары",tx:`Ударные группы Султаната стоят ${STRIKE_COST_SUL} очков (вместо ${STRIKE_COST}), но дают +1 к результату броска на Абордаж.`},
+  {kind:"Отрицательное состояние",title:"Нажива",tx:"В фазу Резервов, вместо Маневра, соединение вашего флота может заявить Атаку или Абордаж против соединения противника с данным состоянием. В этом случае данное состояние используется."},
+  {kind:"Особое действие движения",title:"Газва",tx:"Выберите один корабль в вашем соединении. Переставьте остальные корабли соединения в когеренции с первым кораблём, причём так, чтобы все корабли были направлены в одну сторону. Затем вы можете передвинуть данное соединение на расстояние, равное его Скорости."},
+  {kind:"Ландшафт",title:"Мираж",tx:"Круг ⌀1\", Открытый; эффект действует на всех высотах. Считается соединением вашего флота для определения целей стрельбы. Уберите этот элемент со стола, если он становится целью стрельбы или с ним вступает в контакт любое соединение."},
+  {kind:"Ландшафт",title:"Портал",tx:"Круг ⌀1\", Открытый; эффекты на высотах 1,2. В свой ход или в фазу Резервов соединение в контакте с Порталом может им воспользоваться: разместите один корабль соединения в контакте с другим Порталом, затем остальные корабли в когеренции с ним. Не чаще 1 раза за раунд.\nОрудия вашего флота с правилом «Авиация» могут атаковать через Порталы: дальность атаки равна сумме расстояний от атакующего соединения до портала и от второго портала до цели."},
+  {kind:"Особое правило",title:"Генератор порталов",tx:"В любой момент своего хода вы можете разместить Портал в радиусе 6\" от любого соединения с данным правилом.\nНа столе не может быть больше 2 Порталов. Вы можете убрать Портал со стола в любой момент игры."},
+]},
+};
+
+/* ==================== СОСТОЯНИЕ ==================== */
+const LS_KEY="fleetBuilder.v1", LS_SAVED="fleetBuilder.saved.v1";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+function blankRoster(){return {name:"",formatId:"std",customPoints:1000,customOrders:6,units:[]};}
+let state={factionId:FACTIONS[0].id,rosters:{}};
+try{const raw=localStorage.getItem(LS_KEY); if(raw){const p=JSON.parse(raw); if(p&&p.rosters) state=p;}}catch(e){}
+FACTIONS.forEach(f=>{ if(!state.rosters[f.id]) state.rosters[f.id]=blankRoster(); });
+if(!FACTIONS.some(f=>f.id===state.factionId)) state.factionId=FACTIONS[0].id;
+if(state.rosterView!=="compact") state.rosterView="full"; // подробный ростер по умолчанию
+// миграция: escort из boolean в число (0..3)
+function normRoster(r){ (r&&r.units||[]).forEach(u=>{u.escort=u.escort===true?1:(+u.escort||0);u.strike=u.strike?1:0;}); return r; }
+Object.values(state.rosters).forEach(normRoster);
+let filterTag=null;           // фильтр каталога по тегу синергии (не сохраняется)
+let filterClass=null;         // фильтр каталога по классу корабля (не сохраняется)
+
+/* ---------- классы кораблей ----------
+   В листе фракций явного класса нет: поле «роль» — свободный текст, и разных значений
+   там 55 на 81 корабль. Зато есть Размер, и он ложится на привычные классы почти
+   один в один: из 11 фрегатов 10 — Размер 1, из 28 крейсеров 25 — Размер 2, все 12
+   линкоров — Размер 3 и 4. Поэтому делим по Размеру: это настоящая характеристика,
+   от неё зависят габарит, когеренция и линия видимости, — а не выдуманная поверх метка.
+   Заголовок называет класс Размером, а не «линкорами», потому что рядом с линкорами
+   в тяжёлых стоят авианосцы и колоссы, и врать про них не нужно. Своя роль корабля
+   при этом никуда не девается — она написана на самой карточке. */
+const CLASSES=[
+  {id:"heavy", t:"Тяжёлые", sub:"линкоры, авианосцы, колоссы · Размер 3–4", tc:"#e08a6f"},
+  {id:"mid",   t:"Средние", sub:"крейсеры · Размер 2",                      tc:"#d8b45e"},
+  {id:"light", t:"Лёгкие",  sub:"фрегаты, дестроеры, подлодки · Размер 1",  tc:"#6fa8d8"},
+];
+/* Размер не заполнен только у одного корабля в листе; движок в таком случае считает 2,
+   и здесь ровно то же — чтобы билдер и игра не расходились. */
+function shipClass(s){ const z=s.size||2; return z>=3?"heavy":z===1?"light":"mid"; }
+const classDef=id=>CLASSES.find(c=>c.id===id)||CLASSES[1];
+let curScreen="catalog";      // мобильный экран
+
+const faction=()=>FACTIONS.find(f=>f.id===state.factionId);
+const roster=()=>state.rosters[state.factionId];
+const shipOf=u=>faction().ships.find(s=>s.name===u.ship);
+function save(){ localStorage.setItem(LS_KEY,JSON.stringify(state)); }
+
+const ORDERS_OVERRIDE={sul:{small:3,std:5}}; // Корсары: меньше приказов
+function fmtInfo(r){
+  const f=FORMATS.find(x=>x.id===r.formatId)||FORMATS[1];
+  if(f.id==="custom") return {points:+r.customPoints||0,orders:+r.customOrders||0,vp:null,label:"Свой формат"};
+  const ov=ORDERS_OVERRIDE[state.factionId];
+  const orders=ov&&ov[f.id]!=null?ov[f.id]:f.orders;
+  return {points:f.points,orders,vp:f.vp,label:f.id==="small"?"Малый":"Стандартный"};
+}
+const maxEscorts=()=>faction().id==="sul"?3:1; // Корсары: Султанат до 3 эскортов
+const strikeCost=()=>faction().id==="sul"?STRIKE_COST_SUL:STRIKE_COST; // Янычары: у Султаната дороже
+const unitCost=u=>{const s=shipOf(u);return s?u.count*s.price+(+u.escort||0)*ESCORT_COST+(u.strike?strikeCost():0):0;};
+const totalPts=()=>roster().units.reduce((a,u)=>a+unitCost(u),0);
+
+/* --- иконки и цвета --- */
+const ICONS={
+  crew:'<svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="7.5" r="3.6"/><path d="M2.5 20c0-3.7 2.9-6 6.5-6s6.5 2.3 6.5 6v.5H2.5z"/><circle cx="17.6" cy="8.6" r="2.7"/><path d="M16.7 14.1c2.9.4 4.8 2.3 4.8 5.4v1h-4v-.5c0-2.3-.6-4.3-1.8-5.8z"/></svg>',
+  speed:'<svg class="ic" viewBox="0 0 24 24"><path d="M4.5 3.5 13 12l-8.5 8.5v-17z"/><path d="M12.5 3.5 21 12l-8.5 8.5v-17z"/></svg>',
+  hull:'<svg class="ic" viewBox="0 0 24 24"><path d="M12 21C5.7 15.5 2.6 11.8 2.6 8.4 2.6 5.5 4.8 3.5 7.3 3.5c1.9 0 3.5 1 4.7 2.7 1.2-1.7 2.8-2.7 4.7-2.7 2.5 0 4.7 2 4.7 4.9 0 3.4-3.1 7.1-9.4 12.6z"/></svg>',
+  shield:'<svg class="ic" viewBox="0 0 24 24"><path d="M12 2l8 3.4v5.7c0 5.2-3.4 9.4-8 10.9-4.6-1.5-8-5.7-8-10.9V5.4L12 2z"/></svg>',
+  range:'<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="2.4"/><path d="M12 1v4.2M12 18.8V23M1 12h4.2M18.8 12H23" stroke="currentColor" stroke-width="2.2"/></svg>',
+};
+const AMMO_CLASS={"Фугасный":"--am-fug","Бронебойный":"--am-ap","Энергетический":"--am-en","Титанический":"--am-ti","Дезинтегрирующий":"--am-dis","Дизентегрирующий":"--am-dis","Алхимический":"--am-alc"};
+const ARMOR_CLASS={"Легкая":"ar-light","Тяжелая":"ar-heavy","Силовая":"ar-power","Композитная":"ar-comp"};
+const ammoVar=a=>AMMO_CLASS[a]?`--amc:var(${AMMO_CLASS[a]})`:"";
+function tagColor(tag){let h=0;for(const c of String(tag)) h=(h*31+c.charCodeAt(0))>>>0; return `hsl(${h%360} 52% 60%)`;}
+
+/* ---- термины: клик по чему угодно -> попап со справкой ---- */
+let TERMS=new Map(), LINK_TERMS=[];
+const escRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+function termRegex(title){ // стем каждого слова + хвост склонения, границы без lookbehind
+  const words=title.trim().split(/\s+/).map(w=>{
+    const base=w.length>4?w.slice(0,-2):w.length>3?w.slice(0,-1):w;
+    return escRe(base)+"[а-яёa-z]{0,4}";
+  });
+  return new RegExp("(^|[^а-яёa-z0-9])("+words.join("\\s+")+")(?=[^а-яёa-z0-9]|$)","gi");
+}
+function addTerm(kind,title,body,opts){
+  opts=opts||{};
+  const k=title.toLowerCase();
+  if(TERMS.has(k)){ if(opts.append&&body) TERMS.get(k).body+="\n\n"+body; return; }
+  TERMS.set(k,{kind,title,body:body||"",htmlFn:opts.htmlFn||null,autolink:!opts.noLink,pattern:opts.pattern||null});
+}
+function buildTerms(){
+  TERMS=new Map();
+  const f=faction(), ex=EXTRAS[f.id]||{};
+  (ex.fleetRules||[]).forEach(b=>{
+    let body=b.tx||"";
+    if(b.weapon) body+=(body?"\n":"")+`${b.weapon.ammo} · Залп ${b.weapon.volley} · ${b.weapon.range}" · ${b.weapon.rules}`;
+    addTerm(b.kind,b.title,body,{pattern:b.pattern||null});
+  });
+  f.synergies.filter(s=>s.tag).forEach(s=>{
+    addTerm("Синергия",s.tag,"",{htmlFn:()=>{
+      const ships=f.ships.filter(x=>(x.tags||[]).includes(s.tag)).map(x=>x.name)
+        .concat(f.ships.filter(x=>x.choice&&x.choice.options.includes(s.tag)).map(x=>x.name+" ⚙"));
+      return (s.title?`<div style="color:var(--brass);margin-bottom:6px">«${esc(s.title)}»</div>`:"")+
+        s.tiers.map(t=>`<div style="margin:4px 0"><b style="color:var(--ink)">${t.at}+ соедин.:</b> ${linkify(t.effect||"(эффект не заполнен — WIP)")}</div>`).join("")+
+        (ships.length?`<div style="margin-top:8px;color:var(--dim);font-size:12px">Корабли с тегом: ${ships.map(esc).join(", ")} ${ships.some(x=>x.includes("⚙"))?"(⚙ — тег на выбор)":""}</div>`:"")+
+        `<div style="margin-top:6px;color:var(--dim);font-size:11.5px">В пороги идут только соединения с разными именами.</div>`;
+    }});
+  });
+  CORE_RULES.forEach(b=>addTerm(b.kind,b.title,b.tx));
+  STATES.stance.forEach(s=>addTerm("Положительное состояние",s[0],s[1]));
+  Object.entries(WEAPON_RULES).forEach(([k,v])=>addTerm("Правило орудия",k,v));
+  STATES.positive.forEach(s=>addTerm("Положительное состояние",s[0],"Используйте "+s[1]+".\n\nПоложительное состояние снимает хозяин соединения ради эффекта. Не более 1 жетона одного состояния, если не сказано иначе."));
+  STATES.negative.forEach(s=>addTerm("Отрицательное состояние",s[0],"Используйте "+s[1]+".\n\nОтрицательное состояние использует противник. Не более 1 жетона одного состояния, если не сказано иначе."));
+  addTerm("Особое состояние","Паника",STATES.panic);
+  AMMO_TABLE.rows.forEach(r=>{
+    const name=r[0].replace(/\*+$/,"");
+    addTerm("Тип снаряда",name,`Бросок защиты цели: ${AMMO_TABLE.cols.map((c,i)=>c+" "+r[i+1]).join(" · ")}. Защита не может быть лучше 2+ и хуже 6+.`,{append:true});
+  });
+  AMMO_TABLE.cols.forEach((c,ci)=>{
+    addTerm("Тип брони",c,`Защита от снарядов: ${AMMO_TABLE.rows.map(r=>r[0].replace(/\*+$/,"")+" "+r[ci+1]).join(" · ")}. За каждый куб защиты МЕНЬШЕ порога цель получает жетон Повреждения.`);
+  });
+  Object.entries(SHIPTYPE_DEFS).forEach(([k,v])=>addTerm("Тип корпуса",k,v));
+  Object.entries(PARAM_DEFS).forEach(([k,v])=>addTerm("Параметр",k,v,{noLink:k==="Соединение"}));
+  addTerm("Общее правило","Эскорт",`+${ESCORT_COST} очк на любое соединение: +1 вунда — дополнительная клетка повреждений. Не более 1 на соединение; Султанат («Корсары») — до 3.`);
+  if(f.id==="rus") addTerm("Ключевой термин","Заморожен","Соединение в радиусе 3\" от Айсберга, а также соединение с состоянием «Оледенение», считается Замороженным.\nЗамороженные соединения получают −1 к Скорости.",{pattern:"Заморож[а-яёa-z]{0,7}"});
+  LINK_TERMS=[...TERMS.entries()].filter(x=>x[1].autolink).map(x=>({key:x[0],
+    re:x[1].pattern?new RegExp("(^|[^а-яёa-z0-9])("+x[1].pattern+")(?=[^а-яёa-z0-9]|$)","gi"):termRegex(x[1].title)}));
+  LINK_TERMS.sort((a,b)=>b.key.length-a.key.length);
+}
+function linkify(raw){
+  if(raw==null||raw==="") return "";
+  let s=esc(raw);
+  const toks=[];
+  for(const t of LINK_TERMS){
+    t.re.lastIndex=0;
+    s=s.replace(t.re,(m,pre,word)=>{toks.push({k:t.key,w:word});return pre+"\x01"+(toks.length-1)+"\x02";});
+  }
+  return s.replace(/\x01(\d+)\x02/g,(m,i)=>{const o=toks[+i];return `<a class="term" data-term="${esc(o.k)}">${o.w}</a>`;});
+}
+function weaponRuleTokens(rules){
+  // разделитель в листах гуляет: у AMO правила записаны через точку («Авиация. Перехватчик»)
+  return String(rules).split(/[,;.]/).map(x=>x.trim()).filter(Boolean).map(p=>{
+    let k=p.toLowerCase();
+    // «Критическое (Замедление)», «Критический (Метка)» — ведём на общий термин
+    if(!TERMS.has(k)&&/^критическ\S*\s*\(/.test(k)) k="критическое";
+    return TERMS.has(k)?`<a class="term" data-term="${esc(k)}">${esc(p)}</a>`:esc(p);
+  }).join(" · ");
+}
+function openTerm(key){
+  const t=TERMS.get(String(key||"").toLowerCase()); if(!t) return;
+  $("#tpKind").textContent=t.kind;
+  $("#tpTitle").textContent=t.title;
+  $("#tpBody").innerHTML=t.htmlFn?t.htmlFn():linkify(t.body);
+  $("#termPop").classList.add("open");
+}
+function closeTerm(){ $("#termPop").classList.remove("open"); }
+
+/* --- теги и синергии --- */
+function effTags(s,u){ let t=[...(s.tags||[])]; if(s.choice&&u.choice) t=t.concat(u.choice); return t; }
+function distinctKey(s,u){ return (s.choice&&s.choice.distinct&&u.choice&&u.choice.length)?s.name+"::"+u.choice.join("+"):s.name; }
+function countTag(tag){ // в пороги синергий идут только реальные носители тега (уникальные имена)
+  const m=new Map();
+  for(const u of roster().units){
+    const s=shipOf(u); if(!s) continue;
+    if(!effTags(s,u).includes(tag)) continue;
+    // cap — сколько ОДНОИМЁННЫХ соединений идёт в зачёт (BLUCHER: 2, обычно 1)
+    // w   — с каким весом соединение считается по этому тегу (NEWFOUNDLAND: Canadian ×2)
+    const k=distinctKey(s,u), cap=s.synergyCap||1;
+    const w=(s.synergyWeightTag&&s.synergyWeightTag[tag])||1;
+    const e=m.get(k)||{n:0,w:w};
+    e.n=Math.min(e.n+1,cap); m.set(k,e);
+  }
+  let n=0; m.forEach(v=>n+=v.n*v.w); return n;
+}
+/* Мудрость Афины: при 2+ разных Synedrion соединения с этим тегом ПОЛУЧАЮТ бонусы
+   активных синергий, но НЕ идут в подсчёт порогов других тегов */
+function synedrionActive(){
+  const syn=faction().synergies.find(s=>s.tag==="Synedrion");
+  if(!syn||!syn.tiers.length) return false;
+  return countTag("Synedrion")>=syn.tiers[0].at;
+}
+function synState(){
+  const f=faction(); if(!f.synergies.some(s=>s.tag)) return [];
+  return f.synergies.filter(s=>s.tag).map(s=>{
+    const cnt=countTag(s.tag);
+    let active=null; for(const t of s.tiers){ if(cnt>=t.at) active=t; }
+    const next=s.tiers.find(t=>cnt<t.at);
+    return {syn:s,cnt,active,next};
+  });
+}
+/* --- флагман --- */
+function flagshipStatus(){
+  const r=roster(), units=r.units;
+  if(!units.length) return {ok:false,msgs:[]};
+  const fu=units.find(u=>u.flagship);
+  const maxSize=Math.max(...units.map(u=>(shipOf(u)||{}).size||0));
+  const msgs=[];
+  if(!fu){ msgs.push(["warn","Назначьте флагманское соединение (кнопка ★ в ростере)."]); return {ok:false,msgs,maxSize}; }
+  const s=shipOf(fu);
+  if(s.size<maxSize) msgs.push(["err",`Флагманом должно быть соединение наибольшего Размера (${maxSize}), а у ${s.name} Размер ${s.size}.`]);
+  const abilityOk=s.size>=3;
+  if(!abilityOk) msgs.push(["info",`Размер флагмана ${s.size} < 3 — флагманская способность недоступна.`]);
+  return {ok:true,unit:fu,ship:s,abilityOk,msgs,maxSize};
+}
+
+/* ==================== РЕНДЕР ==================== */
+function renderFactionTabs(){
+  const f=faction();
+  $("#factions").innerHTML=`<button class="ftab on" data-home="1" title="Сменить фракцию" style="--fc:${f.color}">☰&nbsp;<span class="dot"></span>${esc(f.name)}${f.wip?'<span class="wip">WIP</span>':""}</button>`;
+  document.querySelector("[data-home]").onclick=()=>setScreen("factions");
+}
+function renderFormat(){
+  const r=roster();
+  $("#fmtSel").innerHTML=FORMATS.map(f=>`<option value="${f.id}" ${f.id===r.formatId?"selected":""}>${esc(f.label)}</option>`).join("");
+  $("#fmtCustom").style.display=r.formatId==="custom"?"inline-flex":"none";
+  $("#cPts").value=r.customPoints; $("#cOrd").value=r.customOrders;
+  $("#rosterName").value=r.name;
+}
+function renderHeader(){
+  const fi=fmtInfo(roster()), pts=totalPts();
+  const pct=fi.points?Math.min(100,100*pts/fi.points):0;
+  $("#ptsFill").style.width=pct+"%";
+  $("#ptsFill").className=pts>fi.points?"over":"";
+  $("#ptsText").innerHTML=`${pts} <small>/ ${fi.points} очк</small>`;
+  $("#metaText").textContent=`приказов: ${fi.orders}${fi.vp?` · цель ПО: ${fi.vp}`:""}`;
+  renderMobileBar();
+}
+function renderMobileBar(){
+  const fi=fmtInfo(roster());
+  $("#mbPts").textContent=`${totalPts()}/${fi.points} очк`;
+  $("#mbFaction").textContent=faction().name;
+  $("#mbShips").textContent=`${roster().units.length?roster().units.length+" в ростере":faction().ships.length+" соедин."}`;
+  document.querySelectorAll(".mtab").forEach(b=>b.classList.toggle("on",b.dataset.screen===curScreen));
+}
+function factionPts(f){ // цена ростера чужой фракции — считаем по её правилам, не по текущей
+  const sc=f.id==="sul"?STRIKE_COST_SUL:STRIKE_COST;
+  return state.rosters[f.id].units.reduce((a,u)=>{
+    const s=f.ships.find(x=>x.name===u.ship);
+    return a+(s?u.count*s.price+(+u.escort||0)*ESCORT_COST+(u.strike?sc:0):0);
+  },0);
+}
+function renderFactionPane(){
+  $("#factionPane").innerHTML=`<div class="panel"><h3>Выберите фракцию</h3><div class="bd">`+
+    FACTIONS.map(f=>{
+      const r=state.rosters[f.id], pts=factionPts(f);
+      return `<button class="fitem ${f.id===state.factionId?"cur":""}" data-fp="${f.id}" style="--fc:${f.color}">
+        <span class="femb">${esc(f.name[0])}</span>
+        <span class="finf"><b>${esc(f.name)}${f.wip?'<i class="wip">WIP</i>':""}</b>
+          <small>${f.ships.length} соединений${r.units.length?` · ростер: ${pts} очк, ${r.units.length} соед.`:""}</small></span>
+        <span class="farr">→</span></button>`;
+    }).join("")+`</div></div>`;
+  document.querySelectorAll("[data-fp]").forEach(b=>b.onclick=()=>{
+    if(state.factionId!==b.dataset.fp){
+      state.factionId=b.dataset.fp; filterTag=null; closeRules();
+      save(); renderAll();
+    }
+    setScreen("catalog");
+  });
+}
+
+function volleyHtml(v){
+  const s=String(v??"").trim(); if(!s) return "—";
+  const p=s.split("_");
+  // корпус носом влево: клин слева = нос, скруглённый торец справа = корма
+  if(p.length===3) return `<span class="vol3" title="Залп: нос / борт / корма">`+
+    `<svg class="bow" width="13" height="26" viewBox="0 0 13 26" aria-hidden="true"><path d="M13 0.75 L1.6 13 L13 25.25" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`+
+    `<span class="cells"><span><b>${esc(p[0])}</b></span><span><b>${esc(p[1])}</b></span><span><b>${esc(p[2])}</b></span></span></span>`;
+  return `<span class="volraw" title="Залп">${esc(s)}</span>`;
+}
+function kwTitle(fid,kw){
+  const ex=EXTRAS[fid]; if(!ex) return "";
+  const b=(ex.fleetRules||[]).find(x=>x.title===kw);
+  return b?(b.tx||""):"см. правила флота";
+}
+function weaponCardsHtml(ws){
+  if(!ws||!ws.length) return "";
+  return `<div class="wpns">${ws.map(w=>`
+    <div class="wpn" style="${ammoVar(w.ammo)}">
+      <div class="wh"><b>${esc(w.name)}</b><span class="ammo clk" data-term="${esc(String(w.ammo).toLowerCase())}">${esc(w.ammo)}</span></div>
+      <div class="ws">${volleyHtml(w.volley)}<span class="wrng" title="Дальность">${ICONS.range}<b>${w.range!=null?esc(w.range)+'"':"—"}</b></span></div>
+      ${w.rules?`<div class="wr">${weaponRuleTokens(w.rules)}</div>`:""}
+    </div>`).join("")}</div>`;
+}
+function abilitiesHtml(abs){
+  return (abs||[]).map(a=>`<div class="ab"><b>${esc(a.name)}</b> <i>· ${linkify(a.type)}${a.trigger&&a.trigger!=="Нет"?" · "+linkify(a.trigger):""}</i><div class="fx">${linkify(a.effect)}</div></div>`).join("");
+}
+function tagChip(t,extra){
+  return `<span class="chip tag clk ${extra||""}" data-term="${esc(t.toLowerCase())}" title="Синергия — подробнее" style="--tc:${tagColor(t)}"><i class="tdot" style="--tc:${tagColor(t)}"></i>${esc(t)}</span>`;
+}
+function shipCardHtml(f,s,inCount,special){
+  const sq=s.squad[0]===s.squad[1]?String(s.squad[0]):s.squad[0]+"–"+s.squad[1];
+  const arCls=ARMOR_CLASS[s.armor]||"";
+  const optTags=(s.choice&&s.choice.options)||[];
+  return `<article class="ship" style="--fc:${f.color}">
+    <div class="hd"><span class="nm">${esc(s.name)}</span><span class="rl">${esc(s.role)}</span>
+      <span class="pr"><b>${s.price}</b><small>очк / корабль</small></span></div>
+    <div class="chips">
+      <span class="chip clk" data-term="${esc(s.shipType.toLowerCase())}">${esc(s.shipType)}</span><span class="chip clk" data-term="размер">Размер ${s.size}</span>
+      <span class="chip armor clk ${arCls}" data-term="${esc(s.armor.toLowerCase())}" title="Броня: ${esc(s.armor)}">${ICONS.shield}${esc(s.armor)}</span>
+      <span class="chip clk" data-term="соединение" title="Кораблей в соединении">Соединение: ${sq}</span>
+      ${(s.keywords||[]).map(k=>`<span class="chip kw" data-term="${esc(k.toLowerCase())}" title="${esc(kwTitle(f.id,k))}">${esc(k)}</span>`).join("")}
+    </div>
+    <div class="stats">
+      <span class="st clk" data-term="экипаж" title="Экипаж">${ICONS.crew}<b>${s.crew===0?"—":s.crew}</b></span>
+      <span class="st clk" data-term="скорость" title="Скорость">${ICONS.speed}<b>${s.speed}"</b></span>
+      <span class="st clk" data-term="корпус" title="Корпус">${ICONS.hull}<b>${s.hull}</b></span>
+    </div>
+    ${weaponCardsHtml(s.weapons)}
+    ${abilitiesHtml(s.abilities)}
+    ${s.tags&&s.tags.length||optTags.length?`<div class="chips">
+      ${(s.tags||[]).map(t=>tagChip(t,filterTag===t?"hit":"")).join("")}
+      ${optTags.map(t=>tagChip(t,"opt "+(filterTag===t?"hit":""))).join("")}
+    </div>`:""}
+    ${s.choice?`<div class="chips"><span class="chip">⚙ ${esc(s.choice.label)} (пунктирные теги — на выбор)</span></div>`:""}
+    ${special?`<div class="chips"><span class="chip" style="border-color:var(--warn);color:var(--warn)">${esc(s.note||"особое соединение")}</span></div>`:""}
+    <div class="foot">
+      ${inCount?`<span class="inroster">✔ в ростере ×${inCount}</span>`:""}
+      ${special?"":`<button class="addbtn primary" data-add="${esc(s.name)}">+ Добавить</button>`}
+    </div>
+  </article>`;
+}
+function shipMatchesFilter(s){
+  if(filterClass&&shipClass(s)!==filterClass) return false;
+  if(!filterTag) return true;
+  if((s.tags||[]).includes(filterTag)) return true;
+  return !!(s.choice&&s.choice.options.includes(filterTag));
+}
+function renderCatalogTools(){
+  const f=faction();
+  const tags=f.synergies.filter(s=>s.tag).map(s=>s.tag);
+  // Кнопки классов показываем всегда: они и есть ответ на «всё смешалось».
+  // Класс с нулём кораблей у этой фракции не рисуем — жать было бы не на что.
+  const ccnt=id=>f.ships.filter(s=>shipClass(s)===id).length;
+  const classRow=`<span class="lbl">Класс:</span>`+
+    CLASSES.filter(c=>ccnt(c.id)>0).map(c=>`<button class="fchip ${filterClass===c.id?"on":""}" data-fcls="${c.id}" style="--tc:${c.tc}" title="${esc(c.sub)}">${esc(c.t)}<span class="n">${ccnt(c.id)}</span></button>`).join("")+
+    (filterClass?`<button class="fchip" data-fclsclear="1">✕</button>`:"");
+  const tagRow=tags.length?`<span class="lbl" style="margin-left:14px">Синергии:</span>`+
+    tags.map(t=>`<button class="fchip ${filterTag===t?"on":""}" data-ftag="${esc(t)}" style="--tc:${tagColor(t)}"><i class="tdot" style="--tc:${tagColor(t)}"></i>${esc(t)}<span class="n">${cnt(t)}</span></button>`).join("")+
+    (filterTag?`<button class="fchip" data-fclear="1">✕ сброс</button>`:""):"";
+  function cnt(t){ return f.ships.filter(s=>(s.tags||[]).includes(t)||(s.choice&&s.choice.options.includes(t))).length; }
+  $("#filterChips").innerHTML=classRow+tagRow;
+  document.querySelectorAll("[data-fcls]").forEach(b=>b.onclick=()=>{filterClass=filterClass===b.dataset.fcls?null:b.dataset.fcls;renderCatalogTools();renderCatalog();});
+  const cc=document.querySelector("[data-fclsclear]"); if(cc) cc.onclick=()=>{filterClass=null;renderCatalogTools();renderCatalog();};
+  document.querySelectorAll("[data-ftag]").forEach(b=>b.onclick=()=>{filterTag=filterTag===b.dataset.ftag?null:b.dataset.ftag;renderCatalogTools();renderCatalog();});
+  const fc=document.querySelector("[data-fclear]"); if(fc) fc.onclick=()=>{filterTag=null;renderCatalogTools();renderCatalog();};
+}
+function renderCatalog(){
+  const f=faction();
+  const counts={}; roster().units.forEach(u=>counts[u.ship]=(counts[u.ship]||0)+1);
+  const shown=f.ships.filter(shipMatchesFilter);
+  const ex=EXTRAS[f.id];
+  // особые соединения (вводятся способностями, а не покупаются) — тоже по классам
+  const extra=(!filterTag&&ex&&ex.specialShips?ex.specialShips:[])
+    .filter(s=>!filterClass||shipClass(s)===filterClass);
+
+  // Порядок внутри класса — как в листе фракций: автор расставил корабли не случайно,
+  // и пересортировывать их по цене значило бы потерять этот порядок.
+  let html="";
+  for(const c of CLASSES){
+    const mine=shown.filter(s=>shipClass(s)===c.id);
+    const mineEx=extra.filter(s=>shipClass(s)===c.id);
+    if(!mine.length&&!mineEx.length) continue;
+    html+=`<div class="clsHdr" style="--tc:${c.tc}"><span class="t">${esc(c.t)}</span>`+
+      `<span class="n">${mine.length+mineEx.length}</span>`+
+      `<span class="sub">${esc(c.sub)}</span></div>`;
+    html+=mine.map(s=>shipCardHtml(f,s,counts[s.name],false)).join("");
+    html+=mineEx.map(s=>shipCardHtml(f,s,0,true)).join("");
+  }
+  $("#cards").innerHTML=html||`<div class="empty">Под фильтр ничего не попало.</div>`;
+  const bits=[];
+  if(filterClass) bits.push(`класс «${classDef(filterClass).t}»`);
+  if(filterTag) bits.push(`тег «${filterTag}»`);
+  $("#filterInfo").textContent=bits.length?`показано ${shown.length} из ${f.ships.length} — ${bits.join(", ")}`:"";
+  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addUnit(b.dataset.add));
+}
+
+/* --- модалка правил --- */
+let rmTab="fleet";
+function ruleBlock(b){
+  let inner="";
+  if(b.weapon){ inner=weaponCardsHtml([{name:b.title,ammo:b.weapon.ammo,volley:b.weapon.volley,range:b.weapon.range,rules:b.weapon.rules}]); }
+  return `<div class="rule"${b.wide?' style="grid-column:1/-1"':""}><span class="kind">${esc(b.kind)}</span><b class="t">${esc(b.title)}</b>${b.tx?`<div class="tx">${linkify(b.tx)}</div>`:""}${inner}</div>`;
+}
+function rmFleetHtml(){
+  const f=faction(), ex=EXTRAS[f.id]||{}, fa=f.flagshipAbility;
+  let h="";
+  if(fa) h+=`<div class="rulegrid" style="margin-top:0"><div class="rule" style="border-color:var(--brass)"><span class="kind">Флагманская способность — ${esc(f.name)}</span><b class="t">★ ${esc(fa.name)}</b><div class="tx">${esc(fa.type)}${fa.trigger&&fa.trigger!=="Нет"?" · "+esc(fa.trigger):""}\n${esc(fa.effect)}</div><div class="tx" style="margin-top:4px;color:var(--dim)">Доступна только соединениям Размера 3+.</div></div></div>`;
+  h+=`<div class="rulegrid">${(ex.fleetRules||[]).map(ruleBlock).join("")}</div>`;
+  if(ex.specialShips) h+=`<div class="rulegrid">${ex.specialShips.map(s=>shipCardHtml(f,s,0,true)).join("")}</div>`;
+  return h;
+}
+function rmSynHtml(){
+  const f=faction();
+  if(!f.synergies.length) return `<div class="empty">У фракции нет синергий.</div>`;
+  if(!f.synergies.some(s=>s.tag))
+    return f.synergies.map(s=>`<div class="rmsyn"><div class="h"><b>${esc(s.title)}</b></div><div class="tier">${esc((s.tiers[0]||{}).effect||"")}</div></div>`).join("");
+  return f.synergies.filter(s=>s.tag).map(s=>{
+    const ships=f.ships.filter(x=>(x.tags||[]).includes(s.tag)).map(x=>({n:x.name,opt:false}))
+      .concat(f.ships.filter(x=>x.choice&&x.choice.options.includes(s.tag)).map(x=>({n:x.name,opt:true})));
+    const tiers=s.tiers.map(t=>`<div class="tier"><span class="at">${t.at}+</span><span>${linkify(t.effect||"(эффект не заполнен — WIP)")}</span></div>`).join("");
+    return `<div class="rmsyn" style="--tc:${tagColor(s.tag)}">
+      <div class="h"><i class="tdot" style="--tc:${tagColor(s.tag)}"></i><b>${esc(s.tag)}</b></div>
+      ${s.title?`<div class="ttl">«${esc(s.title)}»</div>`:""}
+      ${tiers}
+      ${ships.length?`<div class="shl"><span class="lbl">Корабли:</span>${ships.map(x=>`<button class="shipchip ${x.opt?"opt":""}" data-rmtag="${esc(s.tag)}" title="${x.opt?"тег на выбор — ":""}показать в каталоге">${esc(x.n)}${x.opt?" ⚙":""}</button>`).join("")}</div>`:`<div class="shl"><span class="lbl">Кораблей с тегом пока нет.</span></div>`}
+    </div>`;
+  }).join("");
+}
+function rmCommonHtml(){
+  let h=`<h4>Общие правила</h4><div class="rulegrid" style="margin-top:6px">`;
+  h+=CORE_RULES.map(ruleBlock).join("");
+  h+=`<div class="rule"><span class="kind">Общее правило</span><b class="t">Эскорт</b><div class="tx">Любому соединению можно докупить эскорт за ${ESCORT_COST} очк — не более 1 на соединение (Султанат по правилу «Корсары» — до 3). Эскорт считается кораблём с Корпусом 1 и первым получает Повреждение, когда соединение атакуют, т.е. даёт +1 вунду. Включается на соединении в ростере.</div></div>`;
+  h+=`<div class="rule"><span class="kind">Продвинутые типы</span><b class="t">Типы соединений</b><div class="tx">${Object.entries(SHIPTYPE_DEFS).map(([k,v])=>"• <b>"+esc(k)+"</b> — "+linkify(v)).join("<br>")}</div></div>`;
+  h+=`<div class="rule" style="grid-column:1/-1"><span class="kind">Таблица защиты</span><b class="t">Снаряд × Броня</b>
+    <div class="tbl-scroll"><table class="mini"><tr><th>Снаряд \\ Броня</th>${AMMO_TABLE.cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>
+    ${AMMO_TABLE.rows.map(r=>`<tr><td style="color:${AMMO_CLASS[r[0].replace(/\*+$/,"")]?`var(${AMMO_CLASS[r[0].replace(/\*+$/,"")]})`:"inherit"}">${esc(r[0])}</td>${r.slice(1).map(x=>`<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</table></div>
+    <div class="tx" style="margin-top:5px">${esc(AMMO_TABLE.note)}</div></div>`;
+  h+=`<div class="rule"><span class="kind">Состояния</span><b class="t">Положительные</b><div class="tx">${STATES.positive.map(s=>"• <b>"+esc(s[0])+"</b> — "+linkify(s[1])).join("<br>")}</div><b class="t" style="margin-top:6px">Отрицательные</b><div class="tx">${STATES.negative.map(s=>"• <b>"+esc(s[0])+"</b> — "+linkify(s[1])).join("<br>")}<br><br>${linkify(STATES.panic)}</div><b class="t" style="margin-top:6px">Положение в высоте</b><div class="tx">${STATES.stance.map(s=>"• <b>"+esc(s[0])+"</b> — "+linkify(s[1])).join("<br>")}</div></div>`;
+  h+=`<div class="rule"><span class="kind">Правила орудий</span><b class="t">Глоссарий</b><div class="tx">${Object.entries(WEAPON_RULES).map(([k,v])=>"• <b>"+esc(k)+"</b> — "+linkify(v)).join("<br>")}</div></div>`;
+  h+=`</div>`;
+  return h;
+}
+const RM_ORDER=["fleet","syn","common"];
+const RM_LABELS={fleet:"Правила флота",syn:"Синергии",common:"Общие правила"};
+function setRmTab(tab,dir){
+  if(tab===rmTab) return;
+  rmTab=tab; renderRulesModal();
+  if(dir){ const b=$("#rmBody"); b.classList.remove("slide-l","slide-r"); void b.offsetWidth; b.classList.add(dir>0?"slide-l":"slide-r"); }
+}
+function renderRulesModal(){
+  document.querySelectorAll(".rmtab").forEach(b=>b.classList.toggle("on",b.dataset.tab===rmTab));
+  $("#rmTitle").textContent=rmTab==="common"?RM_LABELS.common:`${RM_LABELS[rmTab]} — ${faction().name}`;
+  $("#rmBody").innerHTML=rmTab==="fleet"?rmFleetHtml():rmTab==="syn"?rmSynHtml():rmCommonHtml();
+  $("#rmBody").scrollTop=0;
+  document.querySelectorAll("[data-rmtag]").forEach(b=>b.onclick=()=>{
+    filterTag=b.dataset.rmtag; closeRules(); setScreen("catalog");
+    renderCatalogTools(); renderCatalog();
+  });
+}
+function openRules(tab){ if(tab) rmTab=tab; $("#rulesModal").classList.add("open"); renderRulesModal(); }
+function closeRules(){ $("#rulesModal").classList.remove("open"); }
+
+/* --- ростер --- */
+function addUnit(name){
+  const s=faction().ships.find(x=>x.name===name); if(!s) return;
+  const u={ship:name,count:s.squad[0],flagship:false,choice:null,escort:0,strike:0};
+  if(s.choice) u.choice=s.choice.options.slice(0,s.choice.pick);
+  roster().units.push(u);
+  save(); renderAll();
+  if(isMobile()) toast(`Добавлено: ${name}`);
+}
+function choiceHtml(s,u,idx){
+  if(!s.choice) return "";
+  const c=s.choice;
+  if(c.pick===1){
+    return `<div class="choice">⚙ ${esc(c.label)}: <select data-ch1="${idx}">${c.options.map(o=>`<option ${u.choice&&u.choice[0]===o?"selected":""}>${esc(o)}</option>`).join("")}</select></div>`;
+  }
+  return `<div class="choice">⚙ ${esc(c.label)}:<br>${c.options.map(o=>
+    `<label><input type="checkbox" data-chm="${idx}" value="${esc(o)}" ${u.choice&&u.choice.includes(o)?"checked":""}> ${esc(o)}</label>`).join(" ")}</div>`;
+}
+function rosterBodyHtml(f,s,u){
+  const arCls=ARMOR_CLASS[s.armor]||"";
+  const chosen=u.choice||[];
+  return `<div class="rbody">
+    <div class="chips">
+      <span class="chip clk" data-term="${esc(s.shipType.toLowerCase())}">${esc(s.shipType)}</span><span class="chip clk" data-term="размер">Размер ${s.size}</span>
+      <span class="chip armor clk ${arCls}" data-term="${esc(s.armor.toLowerCase())}" title="Броня: ${esc(s.armor)}">${ICONS.shield}${esc(s.armor)}</span>
+      ${(s.keywords||[]).map(k=>`<span class="chip kw" data-term="${esc(k.toLowerCase())}" title="${esc(kwTitle(f.id,k))}">${esc(k)}</span>`).join("")}
+    </div>
+    <div class="stats">
+      <span class="st clk" data-term="экипаж" title="Экипаж">${ICONS.crew}<b>${s.crew===0?"—":s.crew}</b></span>
+      <span class="st clk" data-term="скорость" title="Скорость">${ICONS.speed}<b>${s.speed}"</b></span>
+      <span class="st clk" data-term="корпус" title="Корпус">${ICONS.hull}<b>${s.hull}</b></span>
+    </div>
+    ${weaponCardsHtml(s.weapons)}
+    ${abilitiesHtml(s.abilities)}
+    ${(s.tags||[]).length||chosen.length?`<div class="chips">${(s.tags||[]).map(t=>tagChip(t,"")).join("")}${chosen.map(t=>tagChip(t,"hit")).join("")}</div>`:""}
+  </div>`;
+}
+function renderRoster(){
+  const r=roster(), f=faction();
+  $("#rosterHdr").innerHTML=`Ростер — ${esc(f.name)} <button id="viewToggle" class="ghost">${state.rosterView==="full"?"кратко":"подробно"}</button>`;
+  $("#viewToggle").onclick=()=>{state.rosterView=state.rosterView==="full"?"compact":"full";save();renderRoster();};
+  if(!r.units.length){ $("#rosterList").innerHTML=`<div class="empty">Пусто. Добавьте соединения из каталога.</div>`; }
+  else{
+    $("#rosterList").innerHTML=r.units.map((u,i)=>{
+      const s=shipOf(u); if(!s) return "";
+      const sq=s.squad[0]===s.squad[1]?String(s.squad[0]):s.squad[0]+"–"+s.squad[1];
+      return `<div class="runit ${u.flagship?"flag":""}">
+        <div class="top">
+          <button class="starbtn ${u.flagship?"on":""}" data-star="${i}" title="Назначить флагманом">★</button>
+          <span class="nm">${esc(s.name)}</span><span class="rl">${esc(s.role)} · разм ${s.size}</span>
+          <span class="cost">${unitCost(u)} очк</span>
+          <button class="rm" data-rm="${i}" title="Убрать">✕</button>
+        </div>
+        <div class="ctl">
+          <span class="stepper">
+            <button data-dec="${i}" ${u.count<=s.squad[0]?"disabled":""}>−</button><span>${u.count}</span><button data-inc="${i}" ${u.count>=s.squad[1]?"disabled":""}>+</button>
+          </span>
+          кораблей (${sq}) × ${s.price} очк${u.escort?` + ${(+u.escort)*ESCORT_COST}`:""}${u.strike?` + ${strikeCost()}`:""}
+        </div>
+        ${maxEscorts()===1
+          ?`<div class="choice"><label><input type="checkbox" data-esc="${i}" ${u.escort?"checked":""}> Эскорт +${ESCORT_COST} очк · +1 вунда соединению</label></div>`
+          :`<div class="choice">Эскорты (до ${maxEscorts()}, +${ESCORT_COST} очк · +1 вунда за каждый):
+             <span class="stepper"><button data-escdec="${i}" ${(+u.escort||0)<=0?"disabled":""}>−</button><span>${+u.escort||0}</span><button data-escinc="${i}" ${(+u.escort||0)>=maxEscorts()?"disabled":""}>+</button></span></div>`}
+        <div class="choice"><label><input type="checkbox" data-str="${i}" ${u.strike?"checked":""}> ⚔ Ударная группа +${strikeCost()} очк · Абордаж свободным действием${f.id==="sul"?" · «Янычары»: +1 к броску":""}</label></div>
+        ${choiceHtml(s,u,i)}
+        ${state.rosterView==="full"?rosterBodyHtml(f,s,u):""}
+      </div>`;
+    }).join("");
+  }
+  const ships=r.units.reduce((a,u)=>a+u.count,0);
+  $("#totals").innerHTML=`<span>Соединений: <b>${r.units.length}</b></span><span>Кораблей: <b>${ships}</b></span><span>Очки: <b>${totalPts()}</b></span>`;
+  document.querySelectorAll("[data-star]").forEach(b=>b.onclick=()=>{const i=+b.dataset.star;r.units.forEach((u,j)=>u.flagship=(j===i?!u.flagship:false));save();renderAll();});
+  document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{r.units.splice(+b.dataset.rm,1);save();renderAll();});
+  document.querySelectorAll("[data-inc]").forEach(b=>b.onclick=()=>{const u=r.units[+b.dataset.inc];u.count=Math.min(u.count+1,shipOf(u).squad[1]);save();renderAll();});
+  document.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>{const u=r.units[+b.dataset.dec];u.count=Math.max(u.count-1,shipOf(u).squad[0]);save();renderAll();});
+  document.querySelectorAll("[data-esc]").forEach(cb=>cb.onchange=()=>{r.units[+cb.dataset.esc].escort=cb.checked?1:0;save();renderAll();});
+  document.querySelectorAll("[data-str]").forEach(cb=>cb.onchange=()=>{r.units[+cb.dataset.str].strike=cb.checked?1:0;save();renderAll();});
+  document.querySelectorAll("[data-escinc]").forEach(b=>b.onclick=()=>{const u=r.units[+b.dataset.escinc];u.escort=Math.min((+u.escort||0)+1,maxEscorts());save();renderAll();});
+  document.querySelectorAll("[data-escdec]").forEach(b=>b.onclick=()=>{const u=r.units[+b.dataset.escdec];u.escort=Math.max((+u.escort||0)-1,0);save();renderAll();});
+  document.querySelectorAll("[data-ch1]").forEach(sel=>sel.onchange=()=>{r.units[+sel.dataset.ch1].choice=[sel.value];save();renderAll();});
+  document.querySelectorAll("[data-chm]").forEach(cb=>cb.onchange=()=>{
+    const i=+cb.dataset.chm,u=r.units[i],s=shipOf(u);
+    let ch=new Set(u.choice||[]);
+    if(cb.checked){ if(ch.size>=s.choice.pick){cb.checked=false;toast(`Можно выбрать только ${s.choice.pick}`);return;} ch.add(cb.value);}
+    else ch.delete(cb.value);
+    u.choice=[...ch]; save(); renderAll();
+  });
+}
+function renderFlag(){
+  const f=faction(), fs=flagshipStatus(), fa=f.flagshipAbility;
+  let html="";
+  if(!roster().units.length){ html=`<div class="empty">Добавьте соединения — одно из них станет флагманом.</div>`; }
+  else if(fs.ok){
+    html=`Флагман: <b>★ ${esc(fs.ship.name)}</b> (Размер ${fs.ship.size})`;
+    if(fa&&fs.abilityOk) html+=`<div class="fxbox"><b>${esc(fa.name)}</b> <i>· ${linkify(fa.type)}${fa.trigger&&fa.trigger!=="Нет"?" · "+linkify(fa.trigger):""}</i><div class="fx">${linkify(fa.effect)}</div></div>`;
+    else if(fa) html+=`<div class="fx" style="color:var(--dim);margin-top:5px">Способность «${esc(fa.name)}» доступна только флагману Размера 3+.</div>`;
+  } else html=`<div class="empty">Флагман не назначен — нажмите ★ у соединения.</div>`;
+  $("#flagInfo").innerHTML=html;
+}
+function renderSyn(){
+  const f=faction();
+  if(!f.synergies.some(s=>s.tag)){
+    $("#synList").innerHTML=`<div class="warnrow warn">⚠ Синергии фракции (WIP) — без тегов:</div>`+
+      f.synergies.map(s=>`<div class="syn on"><div class="h"><b>${esc(s.title)}</b></div><div class="fx">${esc((s.tiers[0]||{}).effect||"")}</div></div>`).join("");
+    return;
+  }
+  const st=synState();
+  $("#synList").innerHTML=st.map(x=>{
+    const s=x.syn;
+    const dots=`<span class="tierdots">${s.tiers.map(t=>`<span class="${x.cnt>=t.at?"hit":""}">${t.at}</span>`).join("")}</span>`;
+    const wip=s.tiers.every(t=>!t.effect);
+    let body="";
+    if(x.active) body=`<div class="fx">${linkify(x.active.effect||"(эффект не заполнен в листах)")}</div>`;
+    else if(x.next) body=`<div class="need">ещё ${x.next.at-x.cnt} соедин. с тегом до эффекта${s.tiers[0].effect?"":" (WIP)"}</div>`;
+    return `<div class="syn ${x.active?"on":""}">
+      <div class="h"><i class="tdot" style="--tc:${tagColor(s.tag)}"></i><b class="clk" data-term="${esc(s.tag.toLowerCase())}" title="Подробнее">${esc(s.tag)}</b>${dots}<span class="cnt">${x.cnt}</span></div>
+      ${s.title?`<div class="ttl">«${esc(s.title)}»${wip?" · WIP":""}</div>`:""}
+      ${body}</div>`;
+  }).join("")+(faction().id==="ill"&&synedrionActive()?`<div class="warnrow info">✦ «Мудрость Афины» активна: соединения с тегом Synedrion ПОЛУЧАЮТ бонусы всех активных синергий, но в подсчёт порогов не идут.</div>`:"");
+}
+function renderWarnings(){
+  const r=roster(), fi=fmtInfo(r), pts=totalPts(), out=[];
+  if(pts>fi.points) out.push(["err",`Превышение лимита очков: ${pts} / ${fi.points} (+${pts-fi.points}).`]);
+  const fs=flagshipStatus(); fs.msgs.forEach(m=>out.push(m));
+  r.units.forEach(u=>{
+    const s=shipOf(u);
+    if(s&&s.choice&&s.choice.pick>1&&(!u.choice||u.choice.length!==s.choice.pick))
+      out.push(["warn",`${s.name}: выберите ровно ${s.choice.pick} тега (${esc(s.choice.label)}).`]);
+  });
+  if(r.units.length&&!out.length) out.push(["okk","Ростер корректен — можно печатать."]);
+  $("#warnList").innerHTML=out.length?out.map(([k,t])=>`<div class="warnrow ${k}">${k==="err"?"⛔":k==="warn"?"⚠":k==="okk"?"✔":"ℹ"} ${t}</div>`).join(""):`<div class="empty">Добавьте соединения.</div>`;
+}
+function renderAll(){
+  buildTerms();
+  renderFactionTabs(); renderFormat(); renderHeader(); renderFactionPane();
+  renderCatalogTools(); renderCatalog(); renderRoster(); renderFlag(); renderSyn(); renderWarnings();
+  if($("#rulesModal").classList.contains("open")) renderRulesModal();
+}
+
+/* ==================== МОБИЛЬНЫЕ ЭКРАНЫ (свайп) ==================== */
+function isMobile(){ return matchMedia("(max-width:1100px)").matches; }
+const SCREENS=["factions","catalog","roster"];
+const SCREEN_PANE={factions:"#factionPane",catalog:"#catalogPane",roster:"#rosterPane"};
+const scrollMem={factions:0,catalog:0,roster:0};
+function setScreen(s,animate){
+  if(!isMobile()&&s==="roster") s="catalog"; // на десктопе каталог и ростер показаны вместе
+  if(s===curScreen){ renderMobileBar(); return; }
+  const from=SCREENS.indexOf(curScreen), to=SCREENS.indexOf(s);
+  scrollMem[curScreen]=window.scrollY;
+  curScreen=s;
+  document.body.classList.toggle("screen-factions",s==="factions");
+  document.body.classList.toggle("screen-roster",s==="roster");
+  const pane=$(SCREEN_PANE[s]);
+  if(animate!==false&&pane){
+    pane.classList.remove("slide-l","slide-r"); void pane.offsetWidth;
+    pane.classList.add(to>from?"slide-l":"slide-r");
+  }
+  window.scrollTo(0,scrollMem[s]||0);
+  renderMobileBar();
+}
+function shiftScreen(dir){ // dir: +1 вперёд (свайп влево), -1 назад
+  const i=SCREENS.indexOf(curScreen)+dir;
+  if(i>=0&&i<SCREENS.length) setScreen(SCREENS[i]);
+}
+document.querySelectorAll(".mtab").forEach(b=>b.onclick=()=>setScreen(b.dataset.screen));
+let tX=0,tY=0,tOk=false;
+document.addEventListener("touchstart",e=>{
+  const t=e.touches[0]; tX=t.clientX; tY=t.clientY;
+  tOk=!$("#rulesModal").classList.contains("open")&&!$("#savedPanel").classList.contains("open")&&!$("#termPop").classList.contains("open");
+},{passive:true});
+document.addEventListener("touchend",e=>{
+  if(!tOk||!isMobile()) return;
+  const t=e.changedTouches[0], dx=t.clientX-tX, dy=t.clientY-tY;
+  if(Math.abs(dx)>60&&Math.abs(dx)>2.2*Math.abs(dy))
+    shiftScreen(dx<0?1:-1);
+},{passive:true});
+
+/* ==================== ПЕЧАТЬ ==================== */
+function collectUsedWeaponRules(){
+  // правило орудия может прийти не из колонки «Правила», а из текста способности
+  // («Канонада» у KAISER и CONSTITUTION) или из синергии — ищем стеммингом, как автоссылки
+  const f=faction(), used=new Set();
+  const res=Object.keys(WEAPON_RULES).map(k=>({k,re:termRegex(k)}));
+  const scan=t=>{ if(!t)return; res.forEach(x=>{ x.re.lastIndex=0; if(x.re.test(t)) used.add(x.k); }); };
+  roster().units.forEach(u=>{const s=shipOf(u); if(!s) return;
+    s.weapons.forEach(w=>scan(w.rules));
+    (s.abilities||[]).forEach(a=>{scan(a.trigger); scan(a.effect);});
+  });
+  const fs=flagshipStatus();
+  if(fs.ok&&fs.abilityOk&&f.flagshipAbility) scan(f.flagshipAbility.effect);
+  synState().filter(x=>x.active).forEach(x=>scan(x.active.effect));
+  ((EXTRAS[f.id]||{}).fleetRules||[]).forEach(b=>{ if(b.weapon) scan(b.weapon.rules); });
+  return [...used];
+}
+function printCardHtml(f,s,u){
+  const sq=s.squad[0]===s.squad[1]?String(s.squad[0]):s.squad[0]+"–"+s.squad[1];
+  const boxes=[]; const cnt=u?u.count:1;
+  // эскорт получает Повреждение первым — его клетки идут в начале трека
+  if(u) for(let i=0;i<(+u.escort||0);i++) boxes.push(`<span class="grp"><span class="bx esc"></span></span>`);
+  for(let i=0;i<cnt;i++) boxes.push(`<span class="grp">${'<span class="bx"></span>'.repeat(s.hull)}</span>`);
+  const chTags=u&&u.choice?u.choice:[];
+  return `<div class="pcard">
+    <div class="hd">${u&&u.flagship?`<span class="flagmark">★</span>`:""}<b>${esc(s.name)}</b><span class="role">${esc(s.role)}</span>
+      <span class="cost">${u?`×${u.count}${u.escort?` +Эскорт${u.escort>1?"×"+u.escort:""}`:""}${u.strike?" +⚔":""} — ${unitCost(u)} очк`:esc(s.note||"")}</span></div>
+    <div class="meta">${esc(s.shipType)} · Размер <b>${s.size}</b> · Броня <b>${esc(s.armor)}</b> · Соединение ${sq} · ${s.price} очк/корабль</div>
+    <div class="meta">Экипаж <b>${s.crew===0?"—":s.crew}</b> · Скорость <b>${s.speed}"</b> · Корпус <b>${s.hull}</b>${(s.keywords||[]).length?` · <b>${s.keywords.map(esc).join(", ")}</b>`:""}</div>
+    ${s.weapons&&s.weapons.length?`<table class="pw"><tr><th>Орудие</th><th>Снаряд</th><th>Залп Н·Б·К</th><th>Дальн.</th><th>Правила</th></tr>
+      ${s.weapons.map(w=>`<tr><td><b>${esc(w.name)}</b></td><td>${esc(w.ammo)}</td><td>${esc(String(w.volley).replace(/_/g," · "))}</td><td>${w.range!=null?esc(w.range)+'"':"—"}</td><td>${esc(w.rules||"—")}</td></tr>`).join("")}</table>`:""}
+    ${(s.abilities||[]).map(a=>`<div class="pab"><b>${esc(a.name)}</b> <i>· ${esc(a.type)}${a.trigger&&a.trigger!=="Нет"?" · "+esc(a.trigger):""}</i><br>${esc(a.effect)}</div>`).join("")}
+    ${s.tags&&s.tags.length||chTags.length?`<div class="ptags">Теги: ${[...(s.tags||[]),...chTags].map(esc).join(" · ")}${chTags.length?" (выбрано)":""}</div>`:""}
+    ${u?`<div class="dmg">Повреждения:${boxes.join("")}<span>(${s.hull} на корабль${u.escort?", ◯ — эскорт, получает первым":""})</span></div>`:""}
+    ${u&&u.strike?`<div class="dmg">Ударная группа:<span class="grp"><span class="bx str"></span></span><span>(Абордаж свободным действием, Экипаж 9)</span></div>`:""}
+  </div>`;
+}
+function buildPrint(){
+  const f=faction(), r=roster(), fi=fmtInfo(r), fs=flagshipStatus(), fa=f.flagshipAbility;
+  const tagged=f.synergies.some(s=>s.tag);
+  const st=synState().filter(x=>x.active);
+  let h=`<div class="ph"><h1>⚓ ${esc(r.name||"Ростер флота")}</h1>
+    <span class="sub">${esc(f.name)} · формат: ${esc(fi.label)} (${fi.points} очк, ${fi.orders} приказов${fi.vp?`, цель ${fi.vp} ПО`:""})</span>
+    <span class="pts">${totalPts()} / ${fi.points} очк</span></div>`;
+  if(fs.ok&&fa&&fs.abilityOk) h+=`<div class="psyn" style="border-width:1.5px"><b>★ Флагман: ${esc(fs.ship.name)} — «${esc(fa.name)}»</b> <i>(${esc(fa.type)}${fa.trigger&&fa.trigger!=="Нет"?" · "+esc(fa.trigger):""})</i><br>${esc(fa.effect)}</div>`;
+  else if(fs.ok) h+=`<div class="psyn"><b>★ Флагман: ${esc(fs.ship.name)}</b>${fa?` — способность «${esc(fa.name)}» недоступна (Размер ${fs.ship.size} < 3)`:""}</div>`;
+  h+=`<h2>Соединения (${r.units.length})</h2><div class="pgrid">${r.units.map(u=>printCardHtml(f,shipOf(u),u)).join("")}</div>`;
+  if(!tagged&&f.synergies.length){
+    h+=`<h2>Синергии (WIP)</h2>`+f.synergies.map(s=>`<div class="psyn"><b>${esc(s.title)}.</b> ${esc((s.tiers[0]||{}).effect||"")}</div>`).join("");
+  } else if(st.length){
+    h+=`<h2>Активные синергии</h2>`+st.map(x=>`<div class="psyn"><b>${esc(x.syn.tag)} — ${x.cnt} соедин. (уровень ${x.active.at})</b> «${esc(x.syn.title)}»<br>${esc(x.active.effect||"(эффект не заполнен)")}</div>`).join("")+
+      (f.id==="ill"&&synedrionActive()?`<div class="psyn"><b>✦ Мудрость Афины:</b> соединения с тегом Synedrion получают бонусы всех активных синергий (в подсчёт порогов не идут).</div>`:"");
+  }
+  const ex=EXTRAS[f.id];
+  if(ex){
+    h+=`<div class="pagebreak"></div><h2>Правила флота — ${esc(f.name)}</h2><div class="two">`;
+    h+=(ex.fleetRules||[]).map(b=>`<div class="prule"><span class="kind">${esc(b.kind)}</span><b class="t">${esc(b.title)}</b>${b.tx?`<div class="tx">${esc(b.tx)}</div>`:""}${b.weapon?`<div class="tx">${esc(b.weapon.ammo)} · Залп ${esc(b.weapon.volley)} · ${esc(b.weapon.range)}" · ${esc(b.weapon.rules)}</div>`:""}</div>`).join("");
+    h+=`</div>`;
+    if(ex.specialShips) h+=`<div class="pgrid">${ex.specialShips.map(s=>printCardHtml(f,s,null)).join("")}</div>`;
+  }
+  const used=collectUsedWeaponRules();
+  if(used.length) h+=`<h2>Правила орудий ростера</h2><div class="two">${used.map(k=>`<div class="prule"><b class="t">${esc(k)}</b><div class="tx">${esc(WEAPON_RULES[k])}</div></div>`).join("")}</div>`;
+  h+=`<h2>Памятка</h2><div class="pgrid"><div>
+    <table class="mini"><tr><th>Снаряд \\ Броня</th>${AMMO_TABLE.cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>
+    ${AMMO_TABLE.rows.map(rr=>`<tr><td>${esc(rr[0])}</td>${rr.slice(1).map(x=>`<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</table>
+    <div style="font-size:9px;color:#555;margin-top:3px">${esc(AMMO_TABLE.note)}</div></div>
+    <div class="prule"><b class="t">Состояния</b><div class="tx">${STATES.positive.map(s=>"＋ <b>"+esc(s[0])+"</b>: "+esc(s[1])).join("<br>")}<br>${STATES.negative.map(s=>"− <b>"+esc(s[0])+"</b>: "+esc(s[1])).join("<br>")}<br>${esc(STATES.panic)}<br>${STATES.stance.map(s=>"◇ <b>"+esc(s[0])+"</b>: "+esc(s[1])).join("<br>")}</div>
+    <b class="t" style="margin-top:4px">Эскорт</b><div class="tx">+${ESCORT_COST} очк на соединение (макс 1, Султанат — до 3): +1 вунда — клетка ◯ в треке повреждений.</div>
+    <b class="t" style="margin-top:4px">Абордаж и Ударные группы</b><div class="tx">Абордаж — стандартное действие по цели в 1" (арки нет). Обе стороны бросают д3 + Экипаж, +2 если у противника Паника; проигравший получает Повреждений по разнице и проходит тест на Панику.<br>Ударная группа (+${strikeCost()} очк, макс 1 на соединение) — Абордаж свободным действием с Экипажем 9; либо тратится, чтобы отменить Абордаж по себе.</div></div></div>`;
+  h+=`<div class="pfoot">Конструктор флота · ${new Date().toLocaleDateString("ru-RU")} · ${esc(f.name)} · ${totalPts()}/${fi.points} очк</div>`;
+  $("#printRoot").innerHTML=h;
+}
+
+/* ==================== ЭКСПОРТ/ИМПОРТ/СОХРАНЕНИЯ ==================== */
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display="none",2200); }
+function loadSaved(){ try{return JSON.parse(localStorage.getItem(LS_SAVED)||"[]");}catch(e){return[];} }
+function renderSavedPanel(){
+  const list=loadSaved();
+  $("#savedPanel").innerHTML=`<h3>Сохранённые ростеры<button id="closeSaved">✕</button></h3>`+
+   (list.length?list.map((x,i)=>{
+      const fn=(FACTIONS.find(f=>f.id===x.factionId)||{}).name||x.factionId;
+      return `<div class="saved"><div class="inf"><b>${esc(x.name||"Без названия")}</b><small>${esc(fn)} · ${x.pts} очк · ${new Date(x.ts).toLocaleDateString("ru-RU")}</small></div>
+        <div class="bts"><button data-load="${i}">Загрузить</button><button data-del="${i}">✕</button></div></div>`;
+   }).join(""):`<div class="empty">Пока пусто — нажмите «Сохранить».</div>`);
+  $("#closeSaved").onclick=()=>$("#savedPanel").classList.remove("open");
+  document.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>{
+    const x=loadSaved()[+b.dataset.load]; if(!x) return;
+    state.factionId=x.factionId; state.rosters[x.factionId]=normRoster(x.roster);
+    filterTag=null; save(); renderAll(); $("#savedPanel").classList.remove("open"); toast("Ростер загружен");
+  });
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    const list=loadSaved(); list.splice(+b.dataset.del,1);
+    localStorage.setItem(LS_SAVED,JSON.stringify(list)); renderSavedPanel();
+  });
+}
+function rosterText(){
+  const f=faction(), r=roster(), fi=fmtInfo(r);
+  const lines=[`Ростер: ${r.name||"без названия"} — ${f.name}, ${fi.label} (${fi.points} очк, ${fi.orders} приказов)`,`Очки: ${totalPts()}/${fi.points}`,`Соединения:`];
+  r.units.forEach(u=>{const s=shipOf(u);
+    lines.push(`- ${u.flagship?"★ ":""}${s.name} ×${u.count}${u.escort?` + эскорт${u.escort>1?"×"+u.escort:""}`:""}${u.strike?" + ударная группа":""} — ${unitCost(u)} очк (${s.role}, разм ${s.size})${u.choice&&u.choice.length?" · теги: "+u.choice.join(", "):""}`);});
+  if(f.synergies.some(s=>s.tag)){ const act=synState().filter(x=>x.active);
+    if(act.length){ lines.push("Синергии:"); act.forEach(x=>lines.push(`- ${x.syn.tag} (${x.cnt}, ур.${x.active.at}): ${x.syn.title}`)); } }
+  return lines.join("\n");
+}
+
+/* ==================== СОБЫТИЯ ==================== */
+$("#rosterName").oninput=e=>{roster().name=e.target.value;save();};
+$("#fmtSel").onchange=e=>{roster().formatId=e.target.value;save();renderFormat();renderHeader();renderWarnings();};
+$("#cPts").onchange=e=>{roster().customPoints=+e.target.value||0;save();renderHeader();renderWarnings();};
+$("#cOrd").onchange=e=>{roster().customOrders=+e.target.value||0;save();renderHeader();renderWarnings();};
+$("#btnClear").onclick=()=>{ if(roster().units.length&&!confirm("Очистить текущий ростер?"))return; state.rosters[state.factionId]=blankRoster(); save(); renderAll(); };
+$("#btnPrint").onclick=()=>{ buildPrint(); window.print(); };
+$("#btnSave").onclick=()=>{
+  const list=loadSaved();
+  list.unshift({ts:Date.now(),factionId:state.factionId,name:roster().name,pts:totalPts(),roster:JSON.parse(JSON.stringify(roster()))});
+  localStorage.setItem(LS_SAVED,JSON.stringify(list.slice(0,50)));
+  toast("Сохранено"); renderSavedPanel();
+};
+$("#btnSaved").onclick=()=>{ renderSavedPanel(); $("#savedPanel").classList.toggle("open"); };
+$("#btnExport").onclick=()=>{
+  const data={app:"fleet-builder",v:1,factionId:state.factionId,roster:roster()};
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:"application/json"}));
+  a.download=(roster().name||"roster").replace(/[^\wа-яё -]/gi,"")+".json"; a.click();
+};
+$("#btnImport").onclick=()=>$("#importFile").click();
+$("#importFile").onchange=e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const fr=new FileReader();
+  fr.onload=()=>{ try{
+      const d=JSON.parse(fr.result);
+      if(!d.roster||!d.factionId||!FACTIONS.some(f=>f.id===d.factionId)) throw 0;
+      state.factionId=d.factionId; state.rosters[d.factionId]=normRoster(d.roster);
+      filterTag=null; save(); renderAll(); toast("Импортировано");
+    }catch(_){ toast("Не удалось прочитать файл"); } };
+  fr.readAsText(file); e.target.value="";
+};
+$("#btnCopy").onclick=()=>{
+  const t=rosterText();
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Скопировано в буфер"))
+   .catch(()=>{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("Скопировано");});
+};
+document.querySelectorAll("[data-rules]").forEach(b=>b.onclick=()=>openRules(b.dataset.rules));
+$("#rmClose").onclick=closeRules;
+$("#rulesModal").onclick=e=>{ if(e.target.id==="rulesModal") closeRules(); };
+document.querySelectorAll(".rmtab").forEach(b=>b.onclick=()=>{
+  const dir=RM_ORDER.indexOf(b.dataset.tab)>RM_ORDER.indexOf(rmTab)?1:-1;
+  setRmTab(b.dataset.tab,dir);
+});
+let rtX=0,rtY=0;
+$("#rmBox").addEventListener("touchstart",e=>{const t=e.touches[0];rtX=t.clientX;rtY=t.clientY;},{passive:true});
+$("#rmBox").addEventListener("touchend",e=>{
+  if($("#termPop").classList.contains("open")) return;
+  const t=e.changedTouches[0],dx=t.clientX-rtX,dy=t.clientY-rtY;
+  if(Math.abs(dx)>60&&Math.abs(dx)>2.2*Math.abs(dy)){
+    const i=RM_ORDER.indexOf(rmTab)+(dx<0?1:-1);
+    if(i>=0&&i<RM_ORDER.length) setRmTab(RM_ORDER[i],dx<0?1:-1);
+  }
+},{passive:true});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){
+  if($("#termPop").classList.contains("open")) closeTerm();
+  else { closeRules(); $("#savedPanel").classList.remove("open"); }
+}});
+document.addEventListener("click",e=>{ if(!$("#savedPanel").contains(e.target)&&e.target.id!=="btnSaved") $("#savedPanel").classList.remove("open"); });
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-term]");
+  if(el){ e.preventDefault(); openTerm(el.dataset.term); }
+});
+$("#tpClose").onclick=closeTerm;
+$("#termPop").addEventListener("click",e=>{ if(e.target.id==="termPop") closeTerm(); });
+
+renderAll();
+setScreen("factions",false); // старт с выбора фракции (десктоп и мобилка)
+window.__BOOT_OK=true;
+</script>
+<script>
+(function(){
+  var w=document.getElementById("bootWarn");
+  if(window.__BOOT_OK){ if(w&&w.parentNode) w.parentNode.removeChild(w); }
+  else if(w){
+    var e=document.getElementById("bootErr");
+    if(window.__ERRS&&window.__ERRS.length) e.textContent="Ошибка: "+window.__ERRS.join(" | ")+" — пришлите этот текст, поправим.";
+  }
+})();
+</script>
+</body>
+</html>
