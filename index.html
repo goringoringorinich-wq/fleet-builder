@@ -375,6 +375,7 @@ body.screen-factions #factionPane{display:block;max-width:700px;margin:0 auto;wi
       <button id="btnSaved" title="Сохранённые ростеры">📂 Ростеры</button>
       <button id="btnExport" title="Скачать JSON">⬇ JSON</button>
       <button id="btnImport" title="Загрузить из JSON">⬆ Импорт</button>
+      <button id="btnLink" title="Ссылка на этот ростер — откроется на любом устройстве">🔗 Ссылка</button>
       <button id="btnCopy" title="Скопировать текстом">📋 Текст</button>
       <button id="btnPrint" class="primary" title="Версия для печати">🖨 Печать</button>
       <input type="file" id="importFile" accept=".json" style="display:none">
@@ -1338,6 +1339,109 @@ function rosterText(){
   return lines.join("\n");
 }
 
+/* ==================== ССЫЛКА НА РОСТЕР ====================
+   Ростер целиком уезжает в адрес страницы: открыл ссылку на телефоне — там твой лист.
+   Ни сервера, ни аккаунтов, ни срока годности; работает и через год, и без интернета,
+   если страница сохранена файлом.
+
+   Пакуем так: короткие ключи → JSON → deflate → base64 в адресной записи. Обычный
+   ростер выходит в несколько сотен символов — такую ссылку не режут ни мессенджеры,
+   ни почта. Имена кораблей храним словами, а не номерами: номера сдвинутся при
+   следующем обновлении листа фракций, и старые ссылки начнут открывать не то. */
+
+function packRoster(){
+  const r=roster();
+  const p={v:1,f:state.factionId,n:r.name||"",m:r.formatId};
+  if(r.formatId==="custom"){ p.cp=+r.customPoints||0; p.co=+r.customOrders||0; }
+  p.u=r.units.map(x=>{
+    const o={s:x.ship,c:x.count};
+    if(x.escort) o.e=x.escort;
+    if(x.strike) o.k=1;
+    if(x.flagship) o.F=1;
+    if(x.choice&&x.choice.length) o.h=x.choice;
+    return o;
+  });
+  return p;
+}
+function unpackRoster(p){
+  const r=blankRoster();
+  r.name=p.n||""; r.formatId=p.m||"std";
+  if(p.cp) r.customPoints=p.cp;
+  if(p.co) r.customOrders=p.co;
+  r.units=(p.u||[]).map(o=>({
+    ship:o.s, count:+o.c||1, flagship:!!o.F,
+    choice:Array.isArray(o.h)?o.h:null, escort:+o.e||0, strike:o.k?1:0,
+  }));
+  return normRoster(r);
+}
+
+/* base64 в варианте для адресной строки: без плюсов, косых и хвостовых равно. */
+function b64u(bytes){
+  let s=""; for(let i=0;i<bytes.length;i++) s+=String.fromCharCode(bytes[i]);
+  return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function unb64u(str){
+  const t=str.replace(/-/g,"+").replace(/_/g,"/");
+  const bin=atob(t+"===".slice((t.length+3)%4));
+  const out=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i);
+  return out;
+}
+const canZip=typeof CompressionStream!=="undefined"&&typeof DecompressionStream!=="undefined";
+async function zip(u8){
+  const st=new Blob([u8]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(st).arrayBuffer());
+}
+async function unzip(u8){
+  const st=new Blob([u8]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(st).arrayBuffer());
+}
+
+/* Первый символ — метка способа упаковки. Старые браузеры без CompressionStream
+   пишут «0» и кладут несжатое; читают при этом и то и другое. */
+async function rosterToCode(){
+  const raw=new TextEncoder().encode(JSON.stringify(packRoster()));
+  if(!canZip) return "0"+b64u(raw);
+  try{ return "1"+b64u(await zip(raw)); }catch(e){ return "0"+b64u(raw); }
+}
+async function codeToRoster(code){
+  const kind=code[0], body=unb64u(code.slice(1));
+  const raw=kind==="1"?await unzip(body):body;
+  return JSON.parse(new TextDecoder().decode(raw));
+}
+
+async function rosterLink(){
+  const code=await rosterToCode();
+  return location.origin+location.pathname+location.search+"#r="+code;
+}
+
+/* Открытие ссылки не должно ничего затирать. Если в этой фракции уже что-то набрано,
+   прежний ростер сперва уезжает в «Сохранённые» — потерять работу из-за чужой
+   ссылки было бы обиднее всего. */
+async function loadFromHash(){
+  const m=/[#&]r=([A-Za-z0-9_-]+)/.exec(location.hash||"");
+  if(!m) return false;
+  let p=null;
+  try{ p=await codeToRoster(m[1]); }catch(e){ p=null; }
+  if(!p||!p.f||!FACTIONS.some(f=>f.id===p.f)){ toast("Ссылка на ростер не читается"); return false; }
+
+  const cur=state.rosters[p.f];
+  if(cur&&cur.units&&cur.units.length){
+    const list=loadSaved();
+    list.unshift({ts:Date.now(),factionId:p.f,name:(cur.name||"Без названия")+" (было до ссылки)",
+      pts:cur.units.reduce((a,u)=>a+((faction0(p.f).ships.find(x=>x.name===u.ship)||{price:0}).price*(u.count||1)),0),
+      roster:JSON.parse(JSON.stringify(cur))});
+    try{ localStorage.setItem(LS_SAVED,JSON.stringify(list.slice(0,50))); }catch(e){}
+  }
+  state.factionId=p.f;
+  state.rosters[p.f]=unpackRoster(p);
+  save();
+  // адрес чистим: иначе перезагрузка страницы каждый раз заново втягивала бы ссылку
+  try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){}
+  return true;
+}
+const faction0=id=>FACTIONS.find(f=>f.id===id)||FACTIONS[0];
+
 /* ==================== СОБЫТИЯ ==================== */
 $("#rosterName").oninput=e=>{roster().name=e.target.value;save();};
 $("#fmtSel").onchange=e=>{roster().formatId=e.target.value;save();renderFormat();renderHeader();renderWarnings();};
@@ -1370,10 +1474,23 @@ $("#importFile").onchange=e=>{
     }catch(_){ toast("Не удалось прочитать файл"); } };
   fr.readAsText(file); e.target.value="";
 };
-$("#btnCopy").onclick=()=>{
-  const t=rosterText();
-  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Скопировано в буфер"))
-   .catch(()=>{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("Скопировано");});
+/* Копирование с запасным путём: navigator.clipboard есть не везде и молча отказывает,
+   если у окна нет фокуса. Тогда копируем через скрытое поле — иначе человек нажал
+   кнопку, ничего не произошло и непонятно почему. */
+function copyText(t,ok){
+  return (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject())
+    .then(()=>toast(ok))
+    .catch(()=>{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);
+      ta.select();try{document.execCommand("copy");}catch(e){}ta.remove();toast(ok);});
+}
+$("#btnCopy").onclick=()=>copyText(rosterText(),"Скопировано в буфер");
+$("#btnLink").onclick=async()=>{
+  if(!roster().units.length){ toast("Ростер пуст — нечего пересылать"); return; }
+  const url=await rosterLink();
+  // Пределы адресной строки у почты и мессенджеров начинаются примерно с двух тысяч
+  // знаков; предупреждаем заранее, а не после того, как ссылка приедет обрезанной.
+  if(url.length>1800){ toast("Ссылка вышла очень длинной — надёжнее ⬇ JSON"); return; }
+  copyText(url,"Ссылка скопирована — открывается на любом устройстве");
 };
 document.querySelectorAll("[data-rules]").forEach(b=>b.onclick=()=>openRules(b.dataset.rules));
 $("#rmClose").onclick=closeRules;
@@ -1406,6 +1523,14 @@ $("#termPop").addEventListener("click",e=>{ if(e.target.id==="termPop") closeTer
 
 renderAll();
 setScreen("factions",false); // старт с выбора фракции (десктоп и мобилка)
+// Ссылку читаем после первой отрисовки: если она битая, страница уже работает,
+// а человек видит внятное сообщение вместо пустого экрана.
+loadFromHash().then(ok=>{
+  if(!ok) return;
+  renderAll();
+  setScreen("roster",false);
+  toast("Ростер из ссылки загружен");
+});
 window.__BOOT_OK=true;
 </script>
 <script>
