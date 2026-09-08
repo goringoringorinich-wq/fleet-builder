@@ -124,6 +124,10 @@ section{margin-top:46px}
 .row .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;padding-top:3px}
 .row.ask{background:var(--tc-bg);border-left:2px solid var(--tc);padding:9px 12px 9px 10px;margin-left:-12px}
 .row.ask .lbl{color:var(--tc)}
+.row.answer{background:var(--sheet-bg);border-left:2px solid var(--sheet);padding:9px 12px 9px 10px;margin-left:-12px}
+.row.answer .lbl{color:var(--sheet)}
+.row.ask{opacity:.62}
+.row.ask .lbl::after{content:" — было"}
 
 /* рисунок внутри извещения */
 figure{margin:14px 0 4px;padding:14px 14px 10px;border:1px solid var(--rule);background:var(--sea-deep)}
@@ -159,27 +163,30 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
   <p class="sub">Всё, что при переносе правил в движок не сошлось само с собой. Здесь нет
     придирок: каждое извещение — это место, где я либо не смог решить за автора, либо решил
     и хочу, чтобы это проверили. Порядок по важности, не по времени.</p>
+  <p class="sub" style="margin-top:10px"><strong>8 сентября 2026 — ответы получены на все
+    пятнадцать.</strong> Лист оставлен как есть, к каждому извещению добавлено, что ответил
+    автор правил и что из этого сделано в движке. Зачёркнутым внизу — как вопрос был задан.</p>
 
   <div class="tally">
-    <div class="tal" style="--tc:var(--decide)">
-      <span class="n">2</span>
-      <div class="k">Решить</div>
-      <div class="d">Меняет игру. Без ответа делать дальше можно, но, возможно, зря.</div>
+    <div class="tal" style="--tc:var(--sheet)">
+      <span class="n">10</span>
+      <div class="k">Сделано</div>
+      <div class="d">Ответ получен, движок приведён в соответствие, поведение закрыто тестом.</div>
     </div>
     <div class="tal" style="--tc:var(--confirm)">
-      <span class="n">9</span>
-      <div class="k">Подтвердить</div>
-      <div class="d">Я выбрал сам и объяснил почему. Скажи, если мимо.</div>
-    </div>
-    <div class="tal" style="--tc:var(--sheet)">
-      <span class="n">4</span>
-      <div class="k">Починить в листе</div>
-      <div class="d">Дыры в таблице фракций. У меня закрыто заплаткой, источник дырявый.</div>
+      <span class="n">2</span>
+      <div class="k">Ещё в работе</div>
+      <div class="d">Ответ ясен, но механики под него в движке пока нет.</div>
     </div>
     <div class="tal" style="--tc:var(--ink-soft)">
+      <span class="n">2</span>
+      <div class="k">На будущее</div>
+      <div class="d">Правило написано заранее, носителя ему ещё не завели. Так и задумано.</div>
+    </div>
+    <div class="tal" style="--tc:var(--decide)">
       <span class="n">1</span>
-      <div class="k">Ответ на твой вопрос</div>
-      <div class="d">Про то, что активация «столбит» соединение.</div>
+      <div class="k">Вернёмся после наигрыша</div>
+      <div class="d">«Рейтары»: причина оказалась другая, к самому вопросу вернёмся, если он выживет.</div>
     </div>
   </div>
 </header>
@@ -190,7 +197,7 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
   <article class="notice" style="--tc:var(--decide);--tc-bg:var(--decide-bg)">
     <div class="no">01</div>
     <div>
-      <span class="chip">Решить</span>
+      <span class="chip">Вернёмся после наигрыша</span>
       <h3>«Рейтары» в одиночку решают партию</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -219,6 +226,10 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Твоё решение по «Рейтарам». Резать дальность, ставить цену, давать другим
           сторонам ответ — вариантов много, но это правила, а не код.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Диагноз мой был неверен, верен — твой. Абордажем берут ещё и платформы, а коллизия платформ была такой, что обычные соединения не захватывали их вовсе: немцы с радиусом 4″ просто не упирались в неё и брали 2–3 точки ко второму ходу. Абордаж сам по себе статистически невыгоден — верить в спам абордажами было незачем.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Платформа ужата с радиуса 1,5″ до 1″, остров с 3″ до 2,55″, а захват теперь считается <strong>от края корпуса до края платформы</strong>, а не от центра к центру: раньше арифметика делала захват невозможным для всех, кроме фрегатов. К самим «Рейтарам» вернёмся, если перекос переживёт наигрыш.</span></div>
       </div>
     </div>
   </article>
@@ -227,10 +238,10 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
 <section>
   <div class="head"><h2>Строи и коробки</h2><span class="note">правки 0.8, раздел «Строй кораблей»</span></div>
 
-  <article class="notice" style="--tc:var(--decide);--tc-bg:var(--decide-bg)">
+  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
     <div class="no">02</div>
     <div>
-      <span class="chip">Решить</span>
+      <span class="chip">Сделано</span>
       <h3>«Эшелон — квадрат» квадратом не выйдет</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -242,31 +253,38 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           линкоров выйдет почти квадратом, и обещанных широких носовых арок не будет. Развести
           на полную длину корпуса — арки станут ровно как в правках, но та же линия займёт
           <strong>22″ из 48″ стола</strong>.</span></div>
-        <div class="row"><span class="lbl">Что сделал</span>
-          <span>Взял промежуточное. Порядок, который правки обещают, соблюдён:
+        <div class="row"><span class="lbl">Как сейчас</span>
+          <span>После ответа пересчитано по крейсерам и по коробке-первичной. Эшелон
+          встал ровно посередине — а это и был весь вопрос:
             <span class="scroll" style="display:block">
             <table>
-              <thead><tr><th>Строй ×4</th><th>Габарит</th><th>Носовая арка</th></tr></thead>
+              <thead><tr><th>Строй ×4</th><th>Габарит</th><th>Носовая арка</th><th>Было</th></tr></thead>
               <tbody>
-                <tr><td>Линия</td><td class="n">9,9 × 5,0</td><td class="n hit">±63°</td></tr>
-                <tr><td>Эшелон</td><td class="n">4,0 × 10,8</td><td class="n">±20°</td></tr>
-                <tr><td>Колонна</td><td class="n">4,0 × 13,6</td><td class="n">±16°</td></tr>
+                <tr><td>Линия</td><td class="n">5,4 × 2,7</td><td class="n">±63°</td><td class="n">±63°</td></tr>
+                <tr><td>Эшелон</td><td class="n">5,4 × 5,4</td><td class="n hit">±45°</td><td class="n">±20°</td></tr>
+                <tr><td>Колонна</td><td class="n">2,1 × 7,4</td><td class="n">±16°</td><td class="n">±16°</td></tr>
               </tbody>
-            </table></span></span></div>
+            </table></span>
+          Ширину арки по-прежнему никто не задавал числом: она равна углу на угол коробки.
+          Квадрат даёт ровно ±45° сам собой.</span></div>
         <div class="row"><span class="lbl">Как выглядит</span>
-          <span><figure><svg viewBox="0 0 610 262" role="img" aria-label="Три строя из четырёх линкоров: колонна узкая и длинная, линия широкая и мелкая, эшелон между ними. Пунктиром — коробка соединения, лучами — границы носовой арки." style="max-width:100%;height:auto;display:block"><rect x="88.28" y="63.06" width="43.45" height="149.88" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 126.5 63.06 L 131.73 75.44 L 131.73 118.06 L 121.28 118.06 L 121.28 75.44 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 126.5 126.31 L 131.73 138.69 L 131.73 181.31 L 121.28 181.31 L 121.28 138.69 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 93.5 94.69 L 98.73 107.06 L 98.73 149.69 L 88.28 149.69 L 88.28 107.06 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 93.5 157.94 L 98.73 170.31 L 98.73 212.94 L 88.28 212.94 L 88.28 170.31 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><line x1="110" y1="138" x2="80.78" y2="37.21" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="110" y1="138" x2="139.22" y2="37.21" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><text x="110" y="51.06" font-size="12" font-weight="600" fill="var(--decide, #a81d68)" text-anchor="middle">±16°</text><text x="110" y="232" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Колонна</text><text x="110" y="248" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">3.95″ × 13.63″</text><rect x="265.27" y="110.5" width="109.45" height="55" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 270.5 110.5 L 275.73 122.88 L 275.73 165.5 L 265.27 165.5 L 265.27 122.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 303.5 110.5 L 308.73 122.88 L 308.73 165.5 L 298.27 165.5 L 298.27 122.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 336.5 110.5 L 341.73 122.88 L 341.73 165.5 L 331.28 165.5 L 331.28 122.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 369.5 110.5 L 374.73 122.88 L 374.73 165.5 L 364.28 165.5 L 364.28 122.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><line x1="320" y1="138" x2="244.3" y2="99.96" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="320" y1="138" x2="395.7" y2="99.96" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><text x="320" y="98.5" font-size="12" font-weight="600" fill="var(--decide, #a81d68)" text-anchor="middle">±63°</text><text x="320" y="232" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Линия</text><text x="320" y="248" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">9.95″ × 5″</text><rect x="478.28" y="78.88" width="43.45" height="118.25" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 483.5 78.88 L 488.73 91.25 L 488.73 133.88 L 478.28 133.88 L 478.28 91.25 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 516.5 78.88 L 521.73 91.25 L 521.73 133.88 L 511.28 133.88 L 511.28 91.25 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 483.5 142.13 L 488.73 154.5 L 488.73 197.13 L 478.28 197.13 L 478.28 154.5 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 516.5 142.13 L 521.73 154.5 L 521.73 197.13 L 511.28 197.13 L 511.28 154.5 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><line x1="500" y1="138" x2="469.26" y2="54.34" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="500" y1="138" x2="530.74" y2="54.34" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><text x="500" y="66.88" font-size="12" font-weight="600" fill="var(--decide, #a81d68)" text-anchor="middle">±20°</text><text x="500" y="232" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Эшелон</text><text x="500" y="248" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">3.95″ × 10.75″</text></svg><figcaption>Четыре линкора в каждом строю, общий масштаб. Пунктиром — коробка соединения, лучами — границы носовой арки. Ширину арки никто не задавал: она равна углу на угол коробки, поэтому у длинной колонны нос узкий, а у широкой линии — широкий. Видно и загвоздку: Эшелон стоит вплотную к Колонне, а не посередине.</figcaption></figure></span></div>
+          <span><figure data-fig="formations"><svg viewBox="0 0 610 274" role="img" aria-label="Три строя из четырёх крейсеров: колонна узкая и длинная, линия широкая и мелкая, эшелон — квадрат. Пунктиром коробка соединения, лучами границы носовой арки: ширина арки нигде не задана числом, она выпадает из формы коробки." style="max-width:100%;height:auto;display:block"><rect x="88.67" y="56.43" width="42.66" height="147.15" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 126.2 87.48 L 131.33 99.63 L 131.33 141.48 L 121.07 141.48 L 121.07 99.63 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 126.2 149.57 L 131.33 161.73 L 131.33 203.58 L 121.07 203.58 L 121.07 161.73 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 93.8 118.53 L 98.93 130.68 L 98.93 172.53 L 88.67 172.53 L 88.67 130.68 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 93.8 56.43 L 98.93 68.58 L 98.93 110.43 L 88.67 110.43 L 88.67 68.58 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><line x1="110" y1="130" x2="81.16" y2="30.52" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="110" y1="130" x2="138.84" y2="30.52" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><text x="110" y="44.43" font-size="12" font-weight="600" fill="var(--decide, #a81d68)" text-anchor="middle">±16°</text><text x="110" y="244" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Колонна</text><text x="110" y="260" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">2.13″ × 7.36″ · нос ±16°</text><rect x="266.27" y="103" width="107.46" height="54" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 271.4 103 L 276.53 115.15 L 276.53 157 L 266.27 157 L 266.27 115.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 303.8 103 L 308.93 115.15 L 308.93 157 L 298.67 157 L 298.67 115.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 336.2 103 L 341.33 115.15 L 341.33 157 L 331.07 157 L 331.07 115.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 368.6 103 L 373.73 115.15 L 373.73 157 L 363.47 157 L 363.47 115.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><line x1="320" y1="130" x2="245.18" y2="92.4" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="320" y1="130" x2="394.82" y2="92.4" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><text x="320" y="91" font-size="12" font-weight="600" fill="var(--decide, #a81d68)" text-anchor="middle">±63°</text><text x="320" y="244" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Линия</text><text x="320" y="260" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">5.37″ × 2.7″ · нос ±63°</text><rect x="451" y="76" width="108" height="108" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 456.13 76 L 461.26 88.15 L 461.26 130 L 451 130 L 451 88.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 505 103 L 510.13 115.15 L 510.13 157 L 499.87 157 L 499.87 115.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 553.87 130 L 559 142.15 L 559 184 L 548.74 184 L 548.74 142.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 456.13 130 L 461.26 142.15 L 461.26 184 L 451 184 L 451 142.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><line x1="505" y1="130" x2="445.6" y2="70.6" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="505" y1="130" x2="564.4" y2="70.6" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><text x="505" y="64" font-size="12" font-weight="600" fill="var(--decide, #a81d68)" text-anchor="middle">±45°</text><text x="505" y="244" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Эшелон</text><text x="505" y="260" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">5.4″ × 5.4″ · нос ±45°</text></svg><figcaption>Четыре крейсера в каждом строю, общий масштаб. Пунктиром — коробка соединения, лучами — границы носовой арки. Ширину арки никто не задавал: она равна углу на угол коробки, поэтому у длинной колонны нос узкий, а у широкой линии — широкий. Загвоздки больше нет: квадратный Эшелон встал ровно посередине между узкой Колонной и широкой Линией.</figcaption></figure></span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Эшелон получился ближе к Колонне, чем к Линии — выбор между ними почти не
           играет. Развести их заметнее можно правкой одной константы, но строи вырастут.
           Насколько тебе важен именно квадрат?</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Линкоры (Размер 3 и выше) — всегда одиночные соединения, строи нужны крейсерам (Размер 2) и фрегатам (Размер 1). Цель не описать форму вокруг построения, а <strong>вписать построение в форму</strong>. Дальше — раскладка по числу кораблей, от двух по диагонали до двух рядов от шести. Строй — единый объект: при повороте поворачивается весь строй вокруг своего центра, рисунок не меняется.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Раскладка переписана целиком: теперь первична коробка, а места кораблей выводятся из неё. Эшелон выходит квадратом при любом числе кораблей — это отдельная проверка. Возражение «линия из четырёх линкоров займёт пол-стола» снято твоим же ответом: строятся корабли втрое короче. На строи написано 23 теста.</span></div>
       </div>
     </div>
   </article>
 
-  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
+  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
     <div class="no">03</div>
     <div>
-      <span class="chip">Подтвердить</span>
+      <span class="chip">Сделано</span>
       <h3>Порядок набивки колонны не читается</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -277,17 +295,21 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           <span>Взял очевидное прочтение: две колонны, вторая со сдвигом на полшага назад,
           заполняются попеременно. Внешне выходит ровно то, что описано.</span></div>
         <div class="row"><span class="lbl">Как выглядит</span>
-          <span><figure><svg viewBox="0 0 610 282" role="img" aria-label="Порядок набивки колонны из шести кораблей: первые два в одной колонне, дальше попеременно во вторую со сдвигом на полшага." style="max-width:100%;height:auto;display:block"><rect x="128.28" y="23.44" width="43.45" height="213.13" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 166.5 23.44 L 171.73 35.81 L 171.73 78.44 L 161.28 78.44 L 161.28 35.81 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="175.73" y="54.94" font-size="11" fill="currentColor">1</text><path d="M 166.5 86.69 L 171.73 99.06 L 171.73 141.69 L 161.28 141.69 L 161.28 99.06 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="175.73" y="118.19" font-size="11" fill="currentColor">2</text><path d="M 133.5 55.06 L 138.73 67.44 L 138.73 110.06 L 128.28 110.06 L 128.28 67.44 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="142.73" y="86.56" font-size="11" fill="currentColor">3</text><path d="M 133.5 118.31 L 138.73 130.69 L 138.73 173.31 L 128.28 173.31 L 128.28 130.69 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="142.73" y="149.81" font-size="11" fill="currentColor">4</text><path d="M 133.5 181.56 L 138.73 193.94 L 138.73 236.56 L 128.28 236.56 L 128.28 193.94 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="142.73" y="213.06" font-size="11" fill="currentColor">5</text><path d="M 166.5 149.94 L 171.73 162.31 L 171.73 204.94 L 161.28 204.94 L 161.28 162.31 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="175.73" y="181.44" font-size="11" fill="currentColor">6</text><text x="150" y="250" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Как я прочитал</text><text x="150" y="266" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">две колонны, вторая со сдвигом на полшага</text><text x="300" y="60" font-size="12.5" fill="currentColor">В правках:</text><text x="300" y="86" font-size="12" fill="currentColor" opacity=".8">«третий левее, между первым и вторым»</text><text x="300" y="108" font-size="12" fill="currentColor" opacity=".8">«четвёртый над третьим»</text><text x="300" y="130" font-size="12" fill="var(--decide, #a81d68)" font-weight="600">«пятый над вторым» — но там стоит первый</text></svg><figcaption>Номера — порядок, в котором корабли встают в строй при моём прочтении. Красным — та строка правок, которая не сходится сама с собой.</figcaption></figure></span></div>
+          <span><figure data-fig="column-order"><svg viewBox="0 0 610 294" role="img" aria-label="Порядок набивки колонны из шести крейсеров: первые два друг за другом, дальше вторая колонна со сдвигом на полшага; пятый корабль встаёт под вторым." style="max-width:100%;height:auto;display:block"><rect x="108.67" y="23.38" width="42.66" height="209.25" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 146.2 54.43 L 151.33 66.58 L 151.33 108.43 L 141.07 108.43 L 141.07 66.58 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="155.33" y="85.43" font-size="11" fill="currentColor">1</text><path d="M 146.2 116.53 L 151.33 128.68 L 151.33 170.53 L 141.07 170.53 L 141.07 128.68 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="155.33" y="147.53" font-size="11" fill="currentColor">2</text><path d="M 113.8 85.48 L 118.93 97.63 L 118.93 139.48 L 108.67 139.48 L 108.67 97.63 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="122.93" y="116.48" font-size="11" fill="currentColor">3</text><path d="M 113.8 23.38 L 118.93 35.53 L 118.93 77.38 L 108.67 77.38 L 108.67 35.53 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="122.93" y="54.38" font-size="11" fill="currentColor">4</text><path d="M 146.2 178.63 L 151.33 190.78 L 151.33 232.63 L 141.07 232.63 L 141.07 190.78 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="155.33" y="209.63" font-size="11" fill="currentColor">5</text><path d="M 113.8 147.57 L 118.93 159.73 L 118.93 201.58 L 108.67 201.58 L 108.67 159.73 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="122.93" y="178.58" font-size="11" fill="currentColor">6</text><text x="130" y="262" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Как набивается колонна</text><text x="130" y="278" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">две колонны, вторая со сдвигом на полшага</text><text x="270" y="66" font-size="12.5" font-weight="600" fill="currentColor">Правки, с авторской поправкой:</text><text x="270" y="94" font-size="12" fill="currentColor" opacity=".8">«третий левее, между первым и вторым»</text><text x="270" y="118" font-size="12" fill="currentColor" opacity=".8">«четвёртый над третьим»</text><text x="270" y="142" font-size="12" fill="var(--decide, #a81d68)" font-weight="600">«пятый ПОД вторым» — было опечаткой «над»</text><text x="270" y="166" font-size="12" fill="currentColor" opacity=".8">«шестой под третьим», и так далее</text></svg><figcaption>Номера — порядок, в котором корабли встают в строй при моём прочтении. Красным — та строка правок, которая не сходится сама с собой.</figcaption></figure></span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Если ты имел в виду другой порядок — опиши по номерам, правится один список.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Опечатка: пятый не над, а <strong>под</strong> вторым, шестой под третьим и так далее.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Порядок исправлен и закрыт тестом: он проверяет, что пятый стоит в колонне первых двух и ниже второго.</span></div>
       </div>
     </div>
   </article>
 
-  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
+  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
     <div class="no">04</div>
     <div>
-      <span class="chip">Подтвердить</span>
+      <span class="chip">Сделано</span>
       <h3>Линия из пяти и более перестаёт быть линией</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -297,11 +319,15 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
         <div class="row"><span class="lbl">Что сделал</span>
           <span>Оставил как в правках. Это свойство длинных корпусов, а не ошибка раскладки.</span></div>
         <div class="row"><span class="lbl">Как выглядит</span>
-          <span><figure><svg viewBox="0 0 610 268" role="img" aria-label="Линия из четырёх кораблей широкая и мелкая; из шести — уходит во второй ряд и становится вдвое глубже, отчего носовая арка сужается." style="max-width:100%;height:auto;display:block"><rect x="95.28" y="92.5" width="109.45" height="55" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 100.5 92.5 L 105.73 104.88 L 105.73 147.5 L 95.28 147.5 L 95.28 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 133.5 92.5 L 138.73 104.88 L 138.73 147.5 L 128.28 147.5 L 128.28 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 166.5 92.5 L 171.73 104.88 L 171.73 147.5 L 161.28 147.5 L 161.28 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 199.5 92.5 L 204.73 104.88 L 204.73 147.5 L 194.28 147.5 L 194.28 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><line x1="150" y1="120" x2="74.3" y2="81.96" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="150" y1="120" x2="225.7" y2="81.96" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><text x="150" y="80.5" font-size="12" font-weight="600" fill="var(--decide, #a81d68)" text-anchor="middle">±63°</text><text x="150" y="238" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Линия ×4</text><text x="150" y="254" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">9.95″ × 5″ — широкая и мелкая</text><rect x="375.28" y="60.88" width="109.45" height="118.25" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 380.5 60.88 L 385.73 73.25 L 385.73 115.88 L 375.28 115.88 L 375.28 73.25 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 413.5 60.88 L 418.73 73.25 L 418.73 115.88 L 408.28 115.88 L 408.28 73.25 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 446.5 60.88 L 451.73 73.25 L 451.73 115.88 L 441.28 115.88 L 441.28 73.25 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 479.5 60.88 L 484.73 73.25 L 484.73 115.88 L 474.28 115.88 L 474.28 73.25 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 413.5 124.13 L 418.73 136.5 L 418.73 179.13 L 408.28 179.13 L 408.28 136.5 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 446.5 124.13 L 451.73 136.5 L 451.73 179.13 L 441.28 179.13 L 441.28 136.5 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><line x1="430" y1="120" x2="369.46" y2="54.59" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="430" y1="120" x2="490.54" y2="54.59" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><text x="430" y="48.88" font-size="12" font-weight="600" fill="var(--decide, #a81d68)" text-anchor="middle">±43°</text><text x="430" y="238" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Линия ×6</text><text x="430" y="254" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">9.95″ × 10.75″ — второй ряд, глубина вдвое</text></svg><figcaption>Слева линия работает как обещано: широкий нос, мелкая осадка строя. Справа пятый и шестой корабли уходят во второй ряд, глубина удваивается, и носовая арка сужается почти до эшелонной.</figcaption></figure></span></div>
+          <span><figure data-fig="line-rows"><svg viewBox="0 0 610 280" role="img" aria-label="Линия из четырёх крейсеров стоит одним рядом; из шести — второй ряд встаёт в шахматном порядке, вдвигаясь на полкорпуса между кораблями первого, и строй остаётся вытянутым поперёк." style="max-width:100%;height:auto;display:block"><rect x="96.27" y="93" width="107.46" height="54" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 101.4 93 L 106.53 105.15 L 106.53 147 L 96.27 147 L 96.27 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 133.8 93 L 138.93 105.15 L 138.93 147 L 128.67 147 L 128.67 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 166.2 93 L 171.33 105.15 L 171.33 147 L 161.07 147 L 161.07 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 198.6 93 L 203.73 105.15 L 203.73 147 L 193.47 147 L 193.47 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><line x1="150" y1="120" x2="75.18" y2="82.4" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="150" y1="120" x2="224.82" y2="82.4" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><text x="150" y="81" font-size="12" font-weight="600" fill="var(--decide, #a81d68)" text-anchor="middle">±63°</text><text x="150" y="224" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Линия ×4</text><text x="150" y="240" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">5.37″ × 2.7″ — один ряд</text><rect x="376.27" y="79.5" width="107.46" height="81" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 381.4 79.5 L 386.53 91.65 L 386.53 133.5 L 376.27 133.5 L 376.27 91.65 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 413.8 79.5 L 418.93 91.65 L 418.93 133.5 L 408.67 133.5 L 408.67 91.65 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 446.2 79.5 L 451.33 91.65 L 451.33 133.5 L 441.07 133.5 L 441.07 91.65 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 478.6 79.5 L 483.73 91.65 L 483.73 133.5 L 473.47 133.5 L 473.47 91.65 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 397.6 106.5 L 402.73 118.65 L 402.73 160.5 L 392.47 160.5 L 392.47 118.65 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 462.4 106.5 L 467.53 118.65 L 467.53 160.5 L 457.27 160.5 L 457.27 118.65 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><line x1="430" y1="120" x2="363.14" y2="69.6" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="430" y1="120" x2="496.86" y2="69.6" stroke="var(--decide, #a81d68)" stroke-width="1.4" stroke-dasharray="3 3"/><text x="430" y="67.5" font-size="12" font-weight="600" fill="var(--decide, #a81d68)" text-anchor="middle">±53°</text><text x="430" y="224" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Линия ×6</text><text x="430" y="240" font-size="11" fill="var(--decide, #a81d68)" font-weight="600" text-anchor="middle">5.37″ × 4.05″ = 1.5 длины корпуса</text><text x="305" y="266" font-size="11" fill="currentColor" opacity=".75" text-anchor="middle">второй ряд вдвигается на полкорпуса в промежутки переднего — оттого глубина полторы длины, а не две</text></svg><figcaption>Слева линия работает как обещано: широкий нос, мелкая осадка строя. Справа пятый и шестой корабли уходят во второй ряд, глубина удваивается, и носовая арка сужается почти до эшелонной.</figcaption></figure></span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Либо смириться, либо разрешить больше четырёх в ряд для крупных соединений.
           Соединений, где может быть пять и больше кораблей, в листе <strong>пятнадцать</strong>
           (двое из них до десяти) — случай не редкий.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Корабли второго ряда не стоят ровно за первым рядом, а вдвигаются на полкорпуса в промежутки между кораблями первого — в шахматном порядке. От восьми кораблей передний ряд удлиняется до пяти.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Сделано. Глубина линии вышла в полторы длины корпуса вместо двух, и она остаётся шире, чем глубже, при любом числе кораблей — тоже под тестом.</span></div>
       </div>
     </div>
   </article>
@@ -309,7 +335,7 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
   <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
     <div class="no">05</div>
     <div>
-      <span class="chip">Подтвердить</span>
+      <span class="chip">Ещё в работе</span>
       <h3>Коллизия меняется посреди боя</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -319,18 +345,22 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
         <div class="row"><span class="lbl">Что сделал</span>
           <span>Сделал как написано.</span></div>
         <div class="row"><span class="lbl">Как выглядит</span>
-          <span><figure><svg viewBox="0 0 610 266" role="img" aria-label="При гибели предпоследнего корабля коробка соединения скачком сменяется габаритом одного корпуса: соединение резко становится мелкой мишенью." style="max-width:100%;height:auto;display:block"><rect x="118.28" y="60.88" width="43.45" height="118.25" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 140 60.88 L 145.23 73.25 L 145.23 115.88 L 134.78 115.88 L 134.78 73.25 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 123.5 124.13 L 128.73 136.5 L 128.73 179.13 L 118.28 179.13 L 118.28 136.5 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 156.5 124.13 L 161.73 136.5 L 161.73 179.13 L 151.28 179.13 L 151.28 136.5 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="140" y="232" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Пока кораблей трое</text><text x="140" y="248" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">коробка 3.95″ × 10.75″</text><text x="300" y="126" font-size="26" fill="var(--decide, #a81d68)" text-anchor="middle">→</text><text x="300" y="150" font-size="11" fill="var(--decide, #a81d68)" text-anchor="middle">погиб предпоследний</text><rect x="454.78" y="92.5" width="10.45" height="55" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 460 92.5 L 465.23 104.88 L 465.23 147.5 L 454.78 147.5 L 454.78 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="460" y="232" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Остался один</text><text x="460" y="248" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">0.95″ × 5″ — по корпусу</text></svg><figcaption>Скачок происходит за один выстрел: пока кораблей двое, соединение меряется коробкой; как только остаётся один — собственным корпусом. Меняются и дальности до него, и то, что оно собой перекрывает.</figcaption></figure></span></div>
+          <span><figure data-fig="last-ship"><svg viewBox="0 0 610 282" role="img" aria-label="При гибели предпоследнего корабля коробка соединения скачком сменяется габаритом одного корпуса: одиночная модель несёт коллизию строго по своему спрайту." style="max-width:100%;height:auto;display:block"><rect x="76" y="66" width="108" height="108" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 81.13 66 L 86.26 78.15 L 86.26 120 L 76 120 L 76 78.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 130 93 L 135.13 105.15 L 135.13 147 L 124.87 147 L 124.87 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 178.87 120 L 184 132.15 L 184 174 L 173.74 174 L 173.74 132.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="130" y="226" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Пока кораблей трое</text><text x="130" y="242" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">коробка 5.4″ × 5.4″</text><text x="300" y="122" font-size="26" fill="var(--decide, #a81d68)" text-anchor="middle">→</text><text x="300" y="146" font-size="11" fill="var(--decide, #a81d68)" text-anchor="middle">погиб предпоследний</text><rect x="464.87" y="93" width="10.26" height="54" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 470 93 L 475.13 105.15 L 475.13 147 L 464.87 147 L 464.87 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><text x="470" y="226" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Остался один</text><text x="470" y="242" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">0.51″ × 2.7″ — строго по корпусу</text><text x="305" y="268" font-size="11" fill="currentColor" opacity=".75" text-anchor="middle">так и задумано: у одиночной модели коллизия — её спрайт, у соединения — нарисованная рамка</text></svg><figcaption>Скачок происходит за один выстрел: пока кораблей двое, соединение меряется коробкой; как только остаётся один — собственным корпусом. Меняются и дальности до него, и то, что оно собой перекрывает.</figcaption></figure></span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Подтвердить, что скачок задуман. Он играбельный, но заметный: добитая эскадра
           резко становится трудной мишенью.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Подтверждено, так и задумано. Но у одиночных моделей коллизия должна быть строго по визуалу спрайта, а вокруг соединений нужно отрисовывать рамку: невидимые коллизии в живой игре раздражают сильнее всего.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>В правилах сделано: одиночный корабль несёт габарит собственного корпуса, соединение — коробку. <strong>Рамку на поле ещё не рисуем</strong> — это следующая работа по экрану боя.</span></div>
       </div>
     </div>
   </article>
 
-  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
+  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
     <div class="no">06</div>
     <div>
-      <span class="chip">Подтвердить</span>
+      <span class="chip">Сделано</span>
       <h3>Платформы ужимаются на треть, а не косметически</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -339,18 +369,22 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           Острова с <span class="num">3</span> до <span class="num">2,55</span> — это как раз
           заявленные 15%.</span></div>
         <div class="row"><span class="lbl">Как выглядит</span>
-          <span><figure><svg viewBox="0 0 610 254" role="img" aria-label="Острова ужимаются на 15 процентов, а платформы захвата — с радиуса 1,5 до 1, то есть теряют больше половины площади." style="max-width:100%;height:auto;display:block"><circle cx="150" cy="110" r="33" fill="none" fill-opacity="0" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 4" opacity=".6"/><circle cx="150" cy="110" r="28.05" fill="currentColor" fill-opacity="0.18" stroke="var(--decide, #a81d68)" stroke-width="1.4"/><text x="150" y="190" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Остров</text><text x="150" y="206" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">радиус 3 → 2,55  (−15%)</text><circle cx="430" cy="110" r="16.5" fill="none" fill-opacity="0" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 4" opacity=".6"/><circle cx="430" cy="110" r="11" fill="currentColor" fill-opacity="0.18" stroke="var(--decide, #a81d68)" stroke-width="1.4"/><text x="430" y="190" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Платформа</text><text x="430" y="206" font-size="11" fill="var(--decide, #a81d68)" font-weight="600" text-anchor="middle">радиус 1,5 → 1  (−56% площади)</text><text x="305" y="240" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">пунктир — как сейчас, заливка — как в правках; масштаб общий</text></svg><figcaption>Оба элемента в одном масштабе: пунктир — нынешний размер, заливка — по правкам. У острова разница действительно косметическая, у платформы — нет: радиус падает в полтора раза, а площадь захвата более чем вдвое.</figcaption></figure></span></div>
+          <span><figure data-fig="terrain-size"><svg viewBox="0 0 610 254" role="img" aria-label="Острова ужимаются на 15 процентов, а платформы захвата — с радиуса 1,5 до 1, то есть теряют больше половины площади." style="max-width:100%;height:auto;display:block"><circle cx="150" cy="110" r="33" fill="none" fill-opacity="0" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 4" opacity=".6"/><circle cx="150" cy="110" r="28.05" fill="currentColor" fill-opacity="0.18" stroke="var(--decide, #a81d68)" stroke-width="1.4"/><text x="150" y="190" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Остров</text><text x="150" y="206" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">радиус 3 → 2,55  (−15%)</text><circle cx="430" cy="110" r="16.5" fill="none" fill-opacity="0" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 4" opacity=".6"/><circle cx="430" cy="110" r="11" fill="currentColor" fill-opacity="0.18" stroke="var(--decide, #a81d68)" stroke-width="1.4"/><text x="430" y="190" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Платформа</text><text x="430" y="206" font-size="11" fill="var(--decide, #a81d68)" font-weight="600" text-anchor="middle">радиус 1,5 → 1  (−56% площади)</text><text x="305" y="240" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">пунктир — как сейчас, заливка — как в правках; масштаб общий</text></svg><figcaption>Оба элемента в одном масштабе: пунктир — нынешний размер, заливка — по правкам. У острова разница действительно косметическая, у платформы — нет: радиус падает в полтора раза, а площадь захвата более чем вдвое.</figcaption></figure></span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Подтвердить, что треть — намеренно. Платформы дают очки каждый раунд, так что
           это правка баланса, а не размера картинки.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Подтверждено: сейчас платформы слишком затрудняют движение по столу.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Радиус платформы 1,5″ → 1″, то есть минус 56% площади; остров 3″ → 2,55″.</span></div>
       </div>
     </div>
   </article>
 
-  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
+  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
     <div class="no">07</div>
     <div>
-      <span class="chip">Подтвердить</span>
+      <span class="chip">Сделано</span>
       <h3>«Перестроение оставляет центр на месте» — это правка правил</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -360,9 +394,13 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           <span>Сделал по-новому — центр держится. На этом же держится вся раскладка: центр
           строя обязан быть его серединой, а не носом.</span></div>
         <div class="row"><span class="lbl">Как выглядит</span>
-          <span><figure><svg viewBox="0 0 610 268" role="img" aria-label="При Перестроении вокруг ведущего корабля соединение сдвигается вбок; при Перестроении вокруг центра оно остаётся на месте." style="max-width:100%;height:auto;display:block"><rect x="98.28" y="45.06" width="43.45" height="149.88" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 136.5 45.06 L 141.73 57.44 L 141.73 100.06 L 131.28 100.06 L 131.28 57.44 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 136.5 108.31 L 141.73 120.69 L 141.73 163.31 L 131.28 163.31 L 131.28 120.69 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 103.5 76.69 L 108.73 89.06 L 108.73 131.69 L 98.28 131.69 L 98.28 89.06 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 103.5 139.94 L 108.73 152.31 L 108.73 194.94 L 98.28 194.94 L 98.28 152.31 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><g opacity=".95"><rect x="109.06" y="92.5" width="109.45" height="55" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 114.28 92.5 L 119.51 104.88 L 119.51 147.5 L 109.06 147.5 L 109.06 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 147.28 92.5 L 152.51 104.88 L 152.51 147.5 L 142.06 147.5 L 142.06 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 180.28 92.5 L 185.51 104.88 L 185.51 147.5 L 175.06 147.5 L 175.06 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 213.28 92.5 L 218.51 104.88 L 218.51 147.5 L 208.06 147.5 L 208.06 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/></g><line x1="114" y1="120" x2="126" y2="120" stroke="var(--decide, #a81d68)" stroke-width="1.6"/><line x1="120" y1="114" x2="120" y2="126" stroke="var(--decide, #a81d68)" stroke-width="1.6"/><text x="150" y="236" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Было: вокруг ведущего</text><text x="150" y="252" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">соединение уезжает вбок</text><rect x="428.28" y="45.06" width="43.45" height="149.88" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 466.5 45.06 L 471.73 57.44 L 471.73 100.06 L 461.28 100.06 L 461.28 57.44 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 466.5 108.31 L 471.73 120.69 L 471.73 163.31 L 461.28 163.31 L 461.28 120.69 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 433.5 76.69 L 438.73 89.06 L 438.73 131.69 L 428.28 131.69 L 428.28 89.06 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 433.5 139.94 L 438.73 152.31 L 438.73 194.94 L 428.28 194.94 L 428.28 152.31 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><g opacity=".95"><rect x="395.28" y="92.5" width="109.45" height="55" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 400.5 92.5 L 405.73 104.88 L 405.73 147.5 L 395.28 147.5 L 395.28 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 433.5 92.5 L 438.73 104.88 L 438.73 147.5 L 428.28 147.5 L 428.28 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 466.5 92.5 L 471.73 104.88 L 471.73 147.5 L 461.28 147.5 L 461.28 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 499.5 92.5 L 504.73 104.88 L 504.73 147.5 L 494.28 147.5 L 494.28 104.88 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/></g><line x1="444" y1="120" x2="456" y2="120" stroke="var(--decide, #a81d68)" stroke-width="1.6"/><line x1="450" y1="114" x2="450" y2="126" stroke="var(--decide, #a81d68)" stroke-width="1.6"/><text x="450" y="236" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Стало: вокруг центра</text><text x="450" y="252" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">крест остаётся на месте</text></svg><figcaption>Колонна перестраивается в линию. Крестик — та точка, вокруг которой идёт перестроение. Слева она привязана к ведущему кораблю, и соединение уползает вбок; справа — к центру строя, и оно остаётся там же, где стояло.</figcaption></figure></span></div>
+          <span><figure data-fig="reform"><svg viewBox="0 0 610 268" role="img" aria-label="При Перестроении вокруг ведущего корабля соединение сдвигается вбок; при Перестроении вокруг центра коробки оно остаётся на месте." style="max-width:100%;height:auto;display:block"><rect x="98.67" y="46.43" width="42.66" height="147.15" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 136.2 77.47 L 141.33 89.63 L 141.33 131.48 L 131.07 131.48 L 131.07 89.63 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 136.2 139.57 L 141.33 151.73 L 141.33 193.58 L 131.07 193.58 L 131.07 151.73 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 103.8 108.53 L 108.93 120.68 L 108.93 162.53 L 98.67 162.53 L 98.67 120.68 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 103.8 46.43 L 108.93 58.58 L 108.93 100.43 L 98.67 100.43 L 98.67 58.58 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><g opacity=".95"><rect x="109.25" y="93" width="107.46" height="54" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 114.38 93 L 119.51 105.15 L 119.51 147 L 109.25 147 L 109.25 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 146.78 93 L 151.91 105.15 L 151.91 147 L 141.65 147 L 141.65 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 179.18 93 L 184.31 105.15 L 184.31 147 L 174.05 147 L 174.05 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 211.58 93 L 216.71 105.15 L 216.71 147 L 206.45 147 L 206.45 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/></g><line x1="113" y1="120" x2="127" y2="120" stroke="var(--decide, #a81d68)" stroke-width="1.8"/><line x1="120" y1="113" x2="120" y2="127" stroke="var(--decide, #a81d68)" stroke-width="1.8"/><text x="160" y="236" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Было: вокруг ведущего</text><text x="160" y="252" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">соединение уезжает вбок</text><rect x="438.67" y="46.43" width="42.66" height="147.15" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 476.2 77.47 L 481.33 89.63 L 481.33 131.48 L 471.07 131.48 L 471.07 89.63 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 476.2 139.57 L 481.33 151.73 L 481.33 193.58 L 471.07 193.58 L 471.07 151.73 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 443.8 108.53 L 448.93 120.68 L 448.93 162.53 L 438.67 162.53 L 438.67 120.68 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 443.8 46.43 L 448.93 58.58 L 448.93 100.43 L 438.67 100.43 L 438.67 58.58 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><g opacity=".95"><rect x="406.27" y="93" width="107.46" height="54" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4" opacity=".75"/><path d="M 411.4 93 L 416.53 105.15 L 416.53 147 L 406.27 147 L 406.27 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 443.8 93 L 448.93 105.15 L 448.93 147 L 438.67 147 L 438.67 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 476.2 93 L 481.33 105.15 L 481.33 147 L 471.07 147 L 471.07 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/><path d="M 508.6 93 L 513.73 105.15 L 513.73 147 L 503.47 147 L 503.47 105.15 Z" fill="currentColor" fill-opacity=".55" stroke="currentColor" stroke-width="1"/></g><line x1="453" y1="120" x2="467" y2="120" stroke="var(--decide, #a81d68)" stroke-width="1.8"/><line x1="460" y1="113" x2="460" y2="127" stroke="var(--decide, #a81d68)" stroke-width="1.8"/><text x="460" y="236" font-size="12.5" font-weight="600" fill="currentColor" text-anchor="middle">Стало: вокруг центра</text><text x="460" y="252" font-size="11" fill="currentColor" opacity=".7" text-anchor="middle">крест остаётся на месте</text></svg><figcaption>Колонна перестраивается в линию. Крестик — та точка, вокруг которой идёт перестроение. Слева она привязана к ведущему кораблю, и соединение уползает вбок; справа — к центру строя, и оно остаётся там же, где стояло.</figcaption></figure></span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Просто подтверждение, что старое поведение больше не нужно.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Подтверждено: в старых правилах строев не было вовсе, и Перестроение работало иначе.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Перестроение крутит коробку вокруг её центра. Тест проверяет, что при смене строя середина остаётся на месте.</span></div>
       </div>
     </div>
   </article>
@@ -374,7 +412,7 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
   <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
     <div class="no">08</div>
     <div>
-      <span class="chip">Починить в листе</span>
+      <span class="chip">Сделано</span>
       <h3>У ICARUS «Эскадрилья Кос» без правил</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -390,14 +428,18 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           случай. И завёл сторожа: теперь такие дыры валят тесты и сборку билдера.</span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Заполнить ячейку в таблице. У меня заплатка, источник дырявый.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Уже поправлено в исходнике.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Правила «Авиация» и «Перехватчик» вернулись к «Эскадрилье Кос». Парсер теперь ругается, если одно и то же орудие у разных соединений описано по-разному, — чтобы такая потеря не прошла молча второй раз.</span></div>
       </div>
     </div>
   </article>
 
-  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
+  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
     <div class="no">09</div>
     <div>
-      <span class="chip">Починить в листе</span>
+      <span class="chip">Ещё в работе</span>
       <h3>«Обмен данными» ссылается на несуществующее соединение</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -408,14 +450,18 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           <span>Прочёл обобщённо: «союзные наводчики в 8″». Работает, но это моя догадка.</span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Кто такой ACRON — переименованный корабль, вырезанный или опечатка?</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Карточка ACRON есть на листе фракции, в общих правилах флота. За очки её взять нельзя — только выставить по ходу игры правилом «Развертывание Желудей».</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Понял. Правило развёртывания в движке пока не заведено, поэтому «Обмен данными» остаётся описанным, но не исполняемым, — и так и помечено в отчёте о покрытии.</span></div>
       </div>
     </div>
   </article>
 
-  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
+  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
     <div class="no">10</div>
     <div>
-      <span class="chip">Починить в листе</span>
+      <span class="chip">На будущее</span>
       <h3>«Координация эскадрилий» ссылается на орудие, которого нет у союзников</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -426,14 +472,18 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           носителя».</span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Подтвердить прочтение или назвать настоящее условие.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Пока не работает ни у кого: соединения, с которыми оно заработает, будут добавлены позже.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Оставляю как есть. В отчёте о покрытии помечено «правило на будущее», а не «дыра».</span></div>
       </div>
     </div>
   </article>
 
-  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
+  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
     <div class="no">11</div>
     <div>
-      <span class="chip">Починить в листе</span>
+      <span class="chip">На будущее</span>
       <h3>«Массовое поражение» не стоит ни на одном орудии</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -441,6 +491,10 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           Либо забыли проставить, либо оно больше не нужно.</span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Сказать, кому его выдать — или что можно выкидывать.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Пока никому. Правило сделано на будущее.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>То же самое: помечено как заготовка, не как дыра в движке.</span></div>
       </div>
     </div>
   </article>
@@ -449,10 +503,10 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
 <section>
   <div class="head"><h2>Где я решил за тебя</h2><span class="note">сделано и работает, но проверь</span></div>
 
-  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
+  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
     <div class="no">12</div>
     <div>
-      <span class="chip">Подтвердить</span>
+      <span class="chip">Сделано</span>
       <h3>Дальность запуска Эскадрильи не проверялась вовсе</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -462,17 +516,21 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           у орудия есть, а «Созданы служить» существует ровно затем, чтобы её растягивать —
           иначе прибавка была бы ни к чему.</span></div>
         <div class="row"><span class="lbl">Как выглядит</span>
-          <span><figure><svg viewBox="0 0 360 200" role="img" aria-label="Раньше маркер Эскадрильи ложился на цель в любой точке стола; теперь запуск ограничен дальностью орудия." style="max-width:100%;height:auto;display:block"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--decide, #a81d68)"/></marker></defs><rect x="30" y="30" width="300" height="150" fill="none" stroke="currentColor" stroke-width="1" opacity=".45"/><circle cx="60" cy="105" r="5" fill="currentColor"/><circle cx="300" cy="60" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="60" y1="105" x2="300" y2="60" stroke="var(--decide, #a81d68)" stroke-width="1.6" marker-end="url(#ar)"/><text x="180" y="76" font-size="11.5" fill="var(--decide, #a81d68)" text-anchor="middle" font-weight="600">было: через весь стол</text><circle cx="60" cy="105" r="50" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="4 4" opacity=".7"/><text x="16" y="169" font-size="11" fill="currentColor" opacity=".75">стало: дальность орудия</text><text x="30" y="20" font-size="11" fill="currentColor" opacity=".6">стол 48″</text></svg><figcaption>Закрашенный кружок — носитель, пустой — цель. Раньше маркер Эскадрильи ложился на цель в любой точке стола; теперь запуск ограничен дальностью самого орудия (пунктирный круг).</figcaption></figure></span></div>
+          <span><figure data-fig="air-range"><svg viewBox="0 0 360 200" role="img" aria-label="Раньше маркер Эскадрильи ложился на цель в любой точке стола; теперь запуск ограничен дальностью орудия." style="max-width:100%;height:auto;display:block"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--decide, #a81d68)"/></marker></defs><rect x="30" y="30" width="300" height="150" fill="none" stroke="currentColor" stroke-width="1" opacity=".45"/><circle cx="60" cy="105" r="5" fill="currentColor"/><circle cx="300" cy="60" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="60" y1="105" x2="300" y2="60" stroke="var(--decide, #a81d68)" stroke-width="1.6" marker-end="url(#ar)"/><text x="180" y="76" font-size="11.5" fill="var(--decide, #a81d68)" text-anchor="middle" font-weight="600">было: через весь стол</text><circle cx="60" cy="105" r="50" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="4 4" opacity=".7"/><text x="16" y="169" font-size="11" fill="currentColor" opacity=".75">стало: дальность орудия</text><text x="30" y="20" font-size="11" fill="currentColor" opacity=".6">стол 48″</text></svg><figcaption>Закрашенный кружок — носитель, пустой — цель. Раньше маркер Эскадрильи ложился на цель в любой точке стола; теперь запуск ограничен дальностью самого орудия (пунктирный круг).</figcaption></figure></span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Если задумано было «запуск без ограничения дальности» — верну, это одна строка.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Всё верно: у орудий с правилом «Авиация» есть дальность, как и у всех прочих.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Проверка дальности запуска добавлена. Тест, написанный под прежнее — разрешающее — поведение, был переписан: неправ был он, а не код.</span></div>
       </div>
     </div>
   </article>
 
-  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
+  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
     <div class="no">13</div>
     <div>
-      <span class="chip">Подтвердить</span>
+      <span class="chip">Сделано</span>
       <h3>«Стандартное действие (0,1)» у EURIPIDES</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -486,14 +544,18 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           и о каждом таком месте сборка пишет предупреждение.</span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Сказать, что там имелось в виду, если что-то имелось.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>В общих правилах есть правило высоты: цифры в скобках после типа способности — это <strong>высоты воздействия</strong>. Исключение — гностические действия Иллюминатов, там в скобках цена в Гносисе.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Здесь я ошибся дважды, и обе ошибки исправлены. Сперва принял высоту за цену и вычистил «(0,1)» у EURIPIDES как мусор — данные восстановлены, парсер скобки больше не трогает. А теперь заведена и сама механика: способность по умолчанию действует на высотах 1 и 2, то есть <strong>не достаёт ни до погружённых, ни до барражирующих</strong>; раньше доставала любая аура и любое состояние. «Полевое обслуживание» с его (0,1) чинит подводника и не чинит летающего — это проверяется через настоящую активацию.</span></div>
       </div>
     </div>
   </article>
 
-  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
+  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
     <div class="no">14</div>
     <div>
-      <span class="chip">Подтвердить</span>
+      <span class="chip">Сделано</span>
       <h3>Гносис не выдавался в первом раунде</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -503,14 +565,18 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           <span>Починил: «в начале раунда» — значит и первого тоже. На баланс почти не повлияло.</span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Ничего, если только это не было задумано как форма для Иллюминатов.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Всё верно: первый раунд — тоже раунд.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Гносис выдаётся с первого раунда.</span></div>
       </div>
     </div>
   </article>
 
-  <article class="notice" style="--tc:var(--confirm);--tc-bg:var(--confirm-bg)">
+  <article class="notice" style="--tc:var(--sheet);--tc-bg:var(--sheet-bg)">
     <div class="no">15</div>
     <div>
-      <span class="chip">Подтвердить</span>
+      <span class="chip">Сделано</span>
       <h3>«Композитный» и «Композитная»</h3>
       <div class="rows">
         <div class="row"><span class="lbl">В чём дело</span>
@@ -520,6 +586,10 @@ footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);font-si
           <span>Считаю одной и той же бронёй.</span></div>
         <div class="row ask"><span class="lbl">Нужно</span>
           <span>Кивнуть — или сказать, что это разные вещи.</span></div>
+        <div class="row answer"><span class="lbl">Ответ автора</span>
+          <span>Всё верно, одно и то же.</span></div>
+        <div class="row answer"><span class="lbl">Что сделано</span>
+          <span>Написания сведены к одному.</span></div>
       </div>
     </div>
   </article>
